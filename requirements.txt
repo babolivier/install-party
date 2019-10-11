@@ -1,0 +1,4 @@
+ovh==0.5.0
+python-novaclient==15.1.0
+PyYAML==5.1.2
+requests==2.22.0
