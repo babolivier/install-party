@@ -41,9 +41,6 @@ chown -R www-data:www-data /etc/caddy
 cat > /etc/caddy/Caddyfile <<EOF
 {expected_domain} {{
   root /var/www/riot-{riot_version}
-}}
-
-:80 {{
   proxy /.well-known 127.0.0.1:8888
 }}
 EOF
