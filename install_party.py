@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import ipaddress
 import os
 import random
@@ -164,4 +165,5 @@ if __name__ == "__main__":
 
     if mode == "create":
         create(sys.argv[2] if len(sys.argv) > 2 else None, config)
-
+    else:
+        sys.stderr.write("Unknown mode %s. Available modes: create" % mode)
