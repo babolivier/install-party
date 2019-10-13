@@ -63,6 +63,10 @@ def create_instance(name, expected_domain, config):
 
         status = instance.status
 
+        if status == "ERROR":
+            sys.stderr.write("An error occurred while building the instance. Aborting.")
+            sys.exit(2)
+
     ip_address = None
     # Get the instance's IPv4 address from its metadata.
     # We need to loop through all of the interfaces of the Ext-Net
