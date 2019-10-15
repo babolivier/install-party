@@ -1,1 +1,1 @@
-recursive-include install_party/creator *.sh
+recursive-include scripts *.sh

@@ -33,9 +33,7 @@ def create_instance(name, expected_domain, config):
 
     # Generate the actual script to run post-creation from the template and the
     # configuration.
-    post_creation_script_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "post_create.sh"
-    )
+    post_creation_script_path = os.path.join(sys.prefix, "scripts/post_create.sh")
     post_creation_script = open(post_creation_script_path).read().format(
         user=config["instances"]["user"],
         password=config["instances"]["password"],
@@ -63,7 +61,7 @@ def create_instance(name, expected_domain, config):
         status = instance.status
 
         if status == "ERROR":
-            sys.stderr.write("An error occurred while building the instance. Aborting.")
+            sys.stderr.write("An error occurred while building the instance. Aborting.\n")
             sys.exit(2)
 
     ip_address = None

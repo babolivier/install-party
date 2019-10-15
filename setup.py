@@ -45,4 +45,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.5",
+    data_files=[
+        ("scripts", ["scripts/post_create.sh"])
+    ],
 )
