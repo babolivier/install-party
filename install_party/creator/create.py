@@ -1,17 +1,13 @@
-#!/usr/bin/env python
-
-import argparse
 import ipaddress
-import os
 import random
 import string
 import sys
 import time
+import os
 
 from novaclient import client as novaclient
 import ovh
 import requests
-import yaml
 
 # Only imported for type hints.
 from novaclient.v2.client import Client as V2Client
@@ -37,7 +33,10 @@ def create_instance(name, expected_domain, config):
 
     # Generate the actual script to run post-creation from the template and the
     # configuration.
-    post_creation_script = open("post_create.sh").read().format(
+    post_creation_script_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "post_create.sh"
+    )
+    post_creation_script = open(post_creation_script_path).read().format(
         user=config["instances"]["user"],
         password=config["instances"]["password"],
         riot_version=config["general"]["riot_version"],
@@ -154,20 +153,3 @@ def create(name=None, config={}):
             break
 
     print("Host created and provisioned!")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.stderr.write("Usage: install_party.py [mode] [options]\n")
-        sys.exit(1)
-
-    config_location = os.getenv("INSTALL_PARTY_CONFIG", "config.yaml")
-    config_content = open(config_location).read()
-    config = yaml.safe_load(config_content)
-
-    mode = sys.argv[1]
-
-    if mode == "create":
-        create(sys.argv[2] if len(sys.argv) > 2 else None, config)
-    else:
-        sys.stderr.write("Unknown mode %s. Available modes: create" % mode)

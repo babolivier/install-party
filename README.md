@@ -4,21 +4,16 @@ This is a project that creates and manages ephemeral servers for install parties
 
 ## Install and run
 
-Installing Install Party is done by cloning its Git repository and installing its dependencies:
+Install Party can be installed via `pip`:
 
 ```bash
-git clone https://github.com/babolivier/install-party.git
-cd install-party
-virtualenv -p python3 env
-source env/bin/activate
-pip install -r requirements.txt
+pip install install-party
 ```
 
 Then it can be run with:
 
 ```bash
-source env/bin/activate
-./install_party.py [mode] [options]
+python -m install_party [mode] [options]
 ```
 
 ## Creation mode
