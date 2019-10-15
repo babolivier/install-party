@@ -4,9 +4,9 @@ from novaclient import client as novaclient
 from novaclient.v2.client import Client as V2Client
 
 
-def get_nova_client(config):
+def get_nova_client(config) -> V2Client:
     openstack_config = config["openstack"]
-    nova_client: V2Client = novaclient.Client(
+    nova_client = novaclient.Client(
         version=openstack_config["api_version"],
         auth_url=openstack_config["auth_url"],
         username=openstack_config["username"],
