@@ -5,12 +5,9 @@ import sys
 import time
 import os
 
-from novaclient import client as novaclient
-import ovh
 import requests
 
-# Only imported for type hints.
-from novaclient.v2.client import Client as V2Client
+from install_party.util import openstack, ovh
 
 
 def random_string(n):
@@ -18,16 +15,7 @@ def random_string(n):
 
 
 def create_instance(name, expected_domain, config):
-    openstack_config = config["openstack"]
-    nova_client: V2Client = novaclient.Client(
-        version=openstack_config["api_version"],
-        auth_url=openstack_config["auth_url"],
-        username=openstack_config["username"],
-        password=openstack_config["password"],
-        project_id=openstack_config["tenant_id"],
-        project_name=openstack_config["tenant_name"],
-        region_name=openstack_config["region_name"],
-    )
+    nova_client = openstack.get_nova_client(config)
 
     print("Creating instance...")
 
@@ -42,6 +30,7 @@ def create_instance(name, expected_domain, config):
     )
 
     # Ask the hypervisor to create a new instance.
+    openstack_config = config["openstack"]
     instance = nova_client.servers.create(
         name="%s-%s" % (config["general"]["namespace"], name),
         image=openstack_config["image_id"],
@@ -87,13 +76,7 @@ def create_instance(name, expected_domain, config):
 
 
 def create_record(name, ip_address, config):
-    ovh_config = config["ovh"]
-    ovh_client = ovh.Client(
-        endpoint=ovh_config["endpoint"],
-        application_key=ovh_config["application_key"],
-        application_secret=ovh_config["application_secret"],
-        consumer_key=ovh_config["consumer_key"],
-    )
+    ovh_client = ovh.get_ovh_client(config)
 
     print("Creating DNS record...")
 
