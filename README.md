@@ -84,3 +84,7 @@ openstack:
   # ID of the flavor to use to create the instances.
   flavor_id: my_super_flavor
 ```
+
+## Limitations
+
+As pointed out above, Install Party is designed to only work with domains managed by OVH and infrastructure projects managed by an OpenStack provider. There is currently no plan to expand this list of providers.
