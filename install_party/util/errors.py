@@ -1,0 +1,2 @@
+class InstanceCreationError(Exception):
+    pass

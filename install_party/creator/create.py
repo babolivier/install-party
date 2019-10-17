@@ -1,4 +1,3 @@
-import ipaddress
 import random
 import string
 import sys
@@ -7,14 +6,33 @@ import os
 
 import requests
 
-from install_party.util import openstack, ovh
+from install_party.util import errors, openstack, ovh
 
 
 def random_string(n):
+    """Generate a random string made of n lowercase letters."""
     return ''.join(random.choices(string.ascii_lowercase, k=n))
 
 
 def create_instance(name, expected_domain, config):
+    """Create the instance with a boot script using the OpenStack Nova API, then wait for
+    the instance to become active (and raise an exception if an error occurred).
+
+    Args:
+        name (str): The suffix for the name of the instance to create. The final name will
+            be "namespace-name" where "namespace" is the namespace defined in the
+            configuration.
+        expected_domain (str): The domain name that is expected to be attached to the
+            instance later in the creation process.
+        config (dict): The parsed configuration.
+
+    Returns:
+        str: the IPv4 address of the instance.
+
+    Raises:
+        InstanceCreationError: When waiting for the instance's status to become ACTIVE, it
+            instead became ERROR.
+    """
     nova_client = openstack.get_nova_client(config)
 
     print("Creating instance...")
@@ -50,13 +68,24 @@ def create_instance(name, expected_domain, config):
         status = instance.status
 
         if status == "ERROR":
-            sys.stderr.write("An error occurred while building the instance. Aborting.\n")
-            sys.exit(2)
+            raise errors.InstanceCreationError("The instance status changed to ERROR.")
 
     return openstack.get_ipv4(instance)
 
 
 def create_record(name, ip_address, config):
+    """Create a DNS A record to attach to an instance using the OVH API.
+
+    Args:
+        name (str): The prefix for the DNS record's subdomain. The final subdomain will be
+            "name.namespace" where "namespace" is the namespace defined in the
+            configuration.
+        ip_address (str): The IPv4 address to attach the DNS A record to.
+        config (dict): The parsed configuration.
+
+    Returns:
+         dict: The parsed JSON response to the record creation request.
+    """
     ovh_client = ovh.get_ovh_client(config)
 
     print("Creating DNS record...")
@@ -78,6 +107,14 @@ def create_record(name, ip_address, config):
 
 
 def create(name=None, config={}):
+    """Create an instance, attach a domain name to it, and wait until the instance's
+    boot script has been run.
+
+    Args:
+        name (str): The name of the host (will be used to both name the instance and
+            define the domain name).
+        config (dict): The parsed configuration.
+    """
     # Generate a random name (5 lowercase letters) if none was provided.
     if name is None:
         name = random_string(5)

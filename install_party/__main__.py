@@ -4,6 +4,7 @@ import yaml
 
 from install_party.creator.create import create
 from install_party.lister.list import get_and_print_list
+from install_party.util import errors
 
 
 if __name__ == '__main__':
@@ -18,7 +19,11 @@ if __name__ == '__main__':
     mode = sys.argv[1]
 
     if mode == "create":
-        create(sys.argv[2] if len(sys.argv) > 2 else None, config)
+        try:
+            create(sys.argv[2] if len(sys.argv) > 2 else None, config)
+        except errors.InstanceCreationError:
+            sys.stderr.write("An error occurred while building the instance. Aborting.\n")
+            sys.exit(2)
     elif mode == "list":
         get_and_print_list(config)
     else:

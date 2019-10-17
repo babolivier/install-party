@@ -4,6 +4,13 @@ from install_party.util import openstack, ovh
 
 
 def gather_instances(entries_dict, config):
+    """Gather all instances which name belongs to the namespace defined in the
+    configuration and add their info to a given dict.
+
+    Args:
+        entries_dict (dict): The dict to add the instances' info to.
+        config (dict): The parsed configuration.
+    """
     nova_client = openstack.get_nova_client(config)
 
     print("Gathering instances...")
@@ -23,6 +30,13 @@ def gather_instances(entries_dict, config):
 
 
 def gather_domains(entries_dict, config):
+    """Gather all domain names which subdomain belongs to the namespace defined in the
+    configuration and add their info to a given dict.
+
+    Args:
+        entries_dict (dict): The dict to add the domain names' info to.
+        config (dict): The parsed configuration.
+    """
     ovh_client = ovh.get_ovh_client(config)
 
     print("Gathering domains...")
@@ -55,6 +69,23 @@ def gather_domains(entries_dict, config):
 
 
 def sort_entries(entries_dict):
+    """Process a dict populated by gather_instances and gather_domains and sorts its
+    entries into three lists: one containing the entries that have both an instance and a
+    domain, one containing those that only have a domain, and one containing those that
+    only have an instance.
+
+    All lists are populated in such a way that they can be directly fed to the call to
+    tabulate in get_and_print_list.
+
+    Args:
+        entries_dict (dict): The dict containing the entries to sort.
+
+    Returns:
+        list: The list containing the entries that have both an instance and a domain.
+        list: The list containing the entries that only have a domain.
+        list: The list containing the entries that only have an instance.
+    """
+
     complete_entries = []
     orphaned_instances = []
     orphaned_domains = []
@@ -63,9 +94,14 @@ def sort_entries(entries_dict):
         domain = entry.get("domain")
 
         if domain:
+            # Generate the full domain name for this entry from the domain's info.
             full_domain = "%s.%s" % (domain["subDomain"], domain["zone"])
 
-        if domain is None:
+        if instance is None:
+            # We're sure that domain is not None (and therefore full_domain is defined)
+            # here because otherwise this ID wouldn't be in the dict.
+            orphaned_domains.append([entries_dict, full_domain, domain["target"]])
+        elif domain is None:
             # We're sure that instance is not None here because otherwise this ID wouldn't
             # be in the dict.
             orphaned_instances.append([
@@ -74,10 +110,6 @@ def sort_entries(entries_dict):
                 instance.status,
                 openstack.get_ipv4(instance)
             ])
-        elif instance is None:
-            # We're sure that domain is not None (and therefore full_domain is defined)
-            # here because otherwise this ID wouldn't be in the dict.
-            orphaned_domains.append([entries_dict, full_domain, domain["target"]])
         else:
             complete_entries.append([
                 entries_dict,
@@ -91,6 +123,16 @@ def sort_entries(entries_dict):
 
 
 def get_and_print_list(config):
+    """Retrieve a list of all instances and domain names under a configured namespace and
+    print a table listing them and associating each instance with its domain name.
+
+    If an instance doesn't have a domain name associated, or vice-versa, the entry is
+    listed in one of two extra tables (depending on what is missing). Each of those extra
+    tables is only displayed if it contains at least one entry.
+
+    Args:
+        config (dict): The parsed configuration.
+    """
     # Initialise the empty dict which will be populated later.
     entries_dict = {}
 
