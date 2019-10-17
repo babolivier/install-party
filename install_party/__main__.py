@@ -2,7 +2,8 @@ import sys
 import os
 import yaml
 
-from install_party.creator import create
+from install_party.creator.create import create
+from install_party.lister.list import get_and_print_list
 
 
 if __name__ == '__main__':
@@ -17,7 +18,9 @@ if __name__ == '__main__':
     mode = sys.argv[1]
 
     if mode == "create":
-        create.create(sys.argv[2] if len(sys.argv) > 2 else None, config)
+        create(sys.argv[2] if len(sys.argv) > 2 else None, config)
+    elif mode == "list":
+        get_and_print_list(config)
     else:
         sys.stderr.write("Unknown mode %s. Available modes: create" % mode)
 

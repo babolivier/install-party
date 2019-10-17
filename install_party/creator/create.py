@@ -53,26 +53,7 @@ def create_instance(name, expected_domain, config):
             sys.stderr.write("An error occurred while building the instance. Aborting.\n")
             sys.exit(2)
 
-    ip_address = None
-    # Get the instance's IPv4 address from its metadata.
-    # We need to loop through all of the interfaces of the Ext-Net
-    # network (which is the public-facing network) because we can't
-    # always know how the interfaces are ordered.
-    for interface in instance.addresses["Ext-Net"]:
-        address = interface["addr"]
-        try:
-            # This will raise an AddressValueError exception if the
-            # value isn't an IPv4 address.
-            ipaddress.IPv4Address(address)
-            # If no exception have been raised, then the address is an
-            # IPv4 address.
-            ip_address = address
-        except ipaddress.AddressValueError:
-            # This address isn't an IPv4 address; continue to the
-            # next interface.
-            continue
-
-    return ip_address
+    return openstack.get_ipv4(instance)
 
 
 def create_record(name, ip_address, config):

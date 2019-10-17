@@ -28,6 +28,12 @@ The OpenStack instance name will be `{namespace}-{name}` and the domain name wil
 
 Note: currently, if attendees wish/need to use a homeserver's built-in ACME support, they **must** set the post the ACME support listener is listening to to `8888`.
 
+## List mode
+
+The list mode (`list`) prints a table listing the existing servers and domains under the namespace and DNS zone configured in the configuration file, along with their status.
+
+If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`).
+
 ## Configuration
 
 The configuration is provided as a YAML configuration file. By default, a file named `config.yaml` in the current directory will be used, but this can be overridden by setting the environment variable `INSTALL_PARTY_CONFIG` to the path of the desired file.

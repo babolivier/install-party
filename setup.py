@@ -34,6 +34,7 @@ setuptools.setup(
         "python-novaclient==15.1.0",
         "PyYAML==5.1.2",
         "requests==2.22.0",
+        "tabulate==0.8.5",
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
