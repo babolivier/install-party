@@ -1,3 +1,5 @@
+import argparse
+
 from tabulate import tabulate
 
 from install_party.util import openstack, ovh
@@ -133,6 +135,8 @@ def get_and_print_list(config):
     Args:
         config (dict): The parsed configuration.
     """
+    args = parse_args()
+
     # Initialise the empty dict which will be populated later.
     entries_dict = {}
 
@@ -151,18 +155,34 @@ def get_and_print_list(config):
         tablefmt="psql",
     ))
 
-    if orphaned_instances:
-        print("\nORPHANED INSTANCES")
-        print(tabulate(
-            orphaned_instances,
-            headers=["Name", "Instance name", "Status", "IPv4"],
-            tablefmt="psql"
-        ))
+    if not args.hide_orphans:
+        if orphaned_instances:
+            print("\nORPHANED INSTANCES")
+            print(tabulate(
+                orphaned_instances,
+                headers=["Name", "Instance name", "Status", "IPv4"],
+                tablefmt="psql"
+            ))
 
-    if orphaned_domains:
-        print("\nORPHANED DOMAINS")
-        print(tabulate(
-            orphaned_domains,
-            headers=["Name", "Domain", "Status", "IPv4"],
-            tablefmt="psql"
-        ))
+        if orphaned_domains:
+            print("\nORPHANED DOMAINS")
+            print(tabulate(
+                orphaned_domains,
+                headers=["Name", "Domain", "Status", "IPv4"],
+                tablefmt="psql"
+            ))
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="install_party list",
+        description="List existing instances and domain names.",
+    )
+    parser.add_argument(
+        "--hide-orphans",
+        action="store_true",
+        help="Hide instances without a domain and domains without an instance. Defaults"
+             " to false.",
+    )
+
+    return parser.parse_args()

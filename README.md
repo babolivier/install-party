@@ -24,7 +24,7 @@ The OpenStack instance name will be `{namespace}-{name}` and the domain name wil
 
 * `{namespace}` is a configured namespace (e.g. the event's name as a slug)
 * `{zone}` is a configured DNS zone (must be managed by OVH)
-* `{name}` is the host's name (either provided, e.g. `install_party.py create foo`, or a randomly generated 5-letter string) 
+* `{name}` is the host's name (either provided, e.g. `install_party create --name foo`, or a randomly generated 5-letter string)
 
 Note: currently, if attendees wish/need to use a homeserver's built-in ACME support, they **must** set the post the ACME support listener is listening to to `8888`.
 
@@ -32,7 +32,7 @@ Note: currently, if attendees wish/need to use a homeserver's built-in ACME supp
 
 The list mode (`list`) prints a table listing the existing servers and domains under the namespace and DNS zone configured in the configuration file, along with their status.
 
-If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`).
+If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables can be hidden by using the flag `--hide-orphans`.
 
 ## Configuration
 

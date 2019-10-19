@@ -18,14 +18,21 @@ if __name__ == '__main__':
 
     mode = sys.argv[1]
 
+    # Remove the mode from argv so that it doesn't interfere with the parsing of
+    # arguments in the mode's code.
+    if len(sys.argv) > 2:
+        sys.argv = [sys.argv[0]] + sys.argv[2:]
+    else:
+        sys.argv = [sys.argv[0]]
+
     if mode == "create":
         try:
-            create(sys.argv[2] if len(sys.argv) > 2 else None, config)
+            create(config)
         except errors.InstanceCreationError:
             sys.stderr.write("An error occurred while building the instance. Aborting.\n")
             sys.exit(2)
     elif mode == "list":
         get_and_print_list(config)
     else:
-        sys.stderr.write("Unknown mode %s. Available modes: create" % mode)
+        sys.stderr.write("Unknown mode %s. Available modes: create, list\n" % mode)
 

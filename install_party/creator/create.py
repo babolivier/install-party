@@ -1,3 +1,4 @@
+import argparse
 import random
 import string
 import sys
@@ -106,18 +107,20 @@ def create_record(name, ip_address, config):
     return record
 
 
-def create(name=None, config={}):
+def create(config):
     """Create an instance, attach a domain name to it, and wait until the instance's
     boot script has been run.
 
     Args:
-        name (str): The name of the host (will be used to both name the instance and
-            define the domain name).
         config (dict): The parsed configuration.
     """
+    args = parse_args()
+
     # Generate a random name (5 lowercase letters) if none was provided.
-    if name is None:
+    if args.name is None:
         name = random_string(5)
+    else:
+        name = args.name
 
     # Guess what the final domain name for the host is going to be. This is used for
     # inserting the right values in the post-creation script template.
@@ -152,3 +155,18 @@ def create(name=None, config={}):
             break
 
     print("Host created and provisioned!")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="install_party create",
+        description="Create a new instance and attach a domain name to it.",
+    )
+    parser.add_argument(
+        "--name",
+        help="Name to give the instance, and to build its domain name from. Defaults to a"
+             " random string of 5 lowercase letters. Can only contain the characters"
+             " allowed in a domain name label."
+    )
+
+    return parser.parse_args()
