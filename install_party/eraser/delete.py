@@ -16,9 +16,9 @@ def filter_entries_dict(entries_dict, args):
         the entries that the command-line arguments mandate to remove from it.
     """
 
-    if args.instance:
-        # Only keep the entries that are in args.instance.
-        filtered_dict = {k: entries_dict[k] for k in args.instance}
+    if args.server:
+        # Only keep the entries that are in args.server.
+        filtered_dict = {k: entries_dict[k] for k in args.server}
     elif args.exclude:
         # Only keep the entries that are in the dict but not in args.exclude. We don't
         # care about args.all because args.exclude can only be provided if args.all was
@@ -129,7 +129,7 @@ def delete(config):
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="install_party delete",
-        description="Delete existing instances and domains.",
+        description="Delete existing servers.",
     )
     parser.add_argument(
         "-d", "--dry-run",
@@ -141,25 +141,24 @@ def parse_args():
         "-e", "--exclude",
         action="append",
         metavar="NAME",
-        help="Delete all instances and domains which name(s) belong to the configured"
-             " namespace, except for the provided name(s) (use it once per name). Can"
-             " only be used with the -a/--all argument.",
+        help="Delete all servers which name(s) belong to the configured namespace, except"
+             " for the provided name(s) (use it once per name). Can only be used with the"
+             " -a/--all argument.",
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
 
     group.add_argument(
-        "-i", "--instance",
+        "-s", "--server",
         action="append",
         metavar="NAME",
-        help="Only delete the instances and domains for the provided name(s) instead of"
-             " all of the existing ones in the configured namespace (use it once per"
-             " name)."
+        help="Only delete the servers for the provided name(s) instead of all of the"
+             " existing ones in the configured namespace (use it once per name)."
     )
     group.add_argument(
         "-a", "--all",
         action="store_true",
-        help="Delete all of the instances (except the ones provided with --exclude, if"
+        help="Delete all of the servers (except the ones provided with --exclude, if"
              " any)."
     )
 

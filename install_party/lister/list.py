@@ -200,7 +200,7 @@ def get_and_print_list(config):
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="install_party list",
-        description="List existing instances and domain names.",
+        description="List existing servers.",
     )
     parser.add_argument(
         "--hide-orphans",
