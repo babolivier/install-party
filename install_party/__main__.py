@@ -3,6 +3,7 @@ import os
 import yaml
 
 from install_party.creator.create import create
+from install_party.eraser.delete import delete
 from install_party.lister.list import get_and_print_list
 from install_party.util import errors
 
@@ -33,6 +34,8 @@ if __name__ == '__main__':
             sys.exit(2)
     elif mode == "list":
         get_and_print_list(config)
+    elif mode == "delete":
+        delete(config)
     else:
         sys.stderr.write("Unknown mode %s. Available modes: create, list\n" % mode)
 
