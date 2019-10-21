@@ -32,7 +32,30 @@ Note: currently, if attendees wish/need to use a homeserver's built-in ACME supp
 
 The list mode (`list`) prints a table listing the existing servers and domains under the namespace and DNS zone configured in the configuration file, along with their status.
 
-If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables can be hidden by using the flag `--hide-orphans`.
+If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables can be hidden by using the command-line flag `--hide-orphans`.
+
+## Deletion mode
+
+The deletion mode (`delete`) deletes one or more instance(s) along with the associated domain name(s). The instances to delete are defined by the command-line arguments. This mode currently accepts the following arguments:
+
+* `-a/--all`: delete all instances and domains in the configured namespace. Can't be used together with `-s/--server NAME`.
+* `-e/--exclude NAME`: exclude one or more server(s) from the deletion. Can only be used with `-a/--all`. Repeat this argument for every server you want to exclude from the deletion. `NAME` is the name of the server (without the namespace).
+* `-s/--server NAME`: only delete this or these server(s). Repeat this argument for every server you want to delete. `NAME` is the name of the server (without the namespace). Can't be used together with `-a/--all`.
+* `-d/--dry-run`: run the deletion in dry run mode, i.e. no deletion will actually happen but Install Party will act as if, so that the user can check if it's doing the right thing before performing the actual operation.
+
+One of `-a/--all` or `-s/--server NAME` must be provided.
+
+For example, deleting every server but the ones named `matrixtest1` and `matrixtest2` would look like this:
+
+```
+install_party delete --all --exclude matrixtest1 --exclude matrixtest2
+```
+
+On the other hand, deleting only the servers named `matrixtest1` and `matrixtest2` would look like this:
+
+```
+install_party delete --server matrixtest1 --server matrixtest2
+```
 
 ## Configuration
 
