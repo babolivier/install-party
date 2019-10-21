@@ -124,6 +124,35 @@ def sort_entries(entries_dict):
     return complete_entries, orphaned_domains, orphaned_instances
 
 
+def get_list(config):
+    """Retrieve a list of all instances and domain names under a configured namespace.
+
+    Args:
+        config (dict): The parsed configuration.
+
+    Returns:
+        A dict containing the entries, looking like
+
+        {
+            "<id>": {"instance": ..., "domain": ...},
+        }
+
+        where "instance" is the instance associated with this ID (as returned by
+        nova_client.servers.list) and "domain" is the domain name associated with this ID
+        (a dict containing the response to
+        https://api.ovh.com/console/#/domain/zone/%7BzoneName%7D/record/%7Bid%7D#GET)
+    """
+    # Initialise the empty dict which will be populated later.
+    entries_dict = {}
+
+    # Populate the dict with instances.
+    gather_instances(entries_dict, config)
+    # Populate the dict with domains.
+    gather_domains(entries_dict, config)
+
+    return entries_dict
+
+
 def get_and_print_list(config):
     """Retrieve a list of all instances and domain names under a configured namespace and
     print a table listing them and associating each instance with its domain name.
@@ -137,13 +166,8 @@ def get_and_print_list(config):
     """
     args = parse_args()
 
-    # Initialise the empty dict which will be populated later.
-    entries_dict = {}
-
-    # Populate the dict with instances.
-    gather_instances(entries_dict, config)
-    # Populate the dict with domains.
-    gather_domains(entries_dict, config)
+    # Retrieve the list of instances and domain names.
+    entries_dict = get_list(config)
 
     # Sort the entries into three lists.
     complete_entries, orphaned_domains, orphaned_instances = sort_entries(entries_dict)
