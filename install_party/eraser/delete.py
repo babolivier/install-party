@@ -162,7 +162,7 @@ def parse_args():
 
     args = parser.parse_args()
 
-    if args.exclude and args.instance:
+    if args.exclude and not args.all:
         parser.error("argument -e/--exclude can only be used with argument -a/--all")
 
     return args
