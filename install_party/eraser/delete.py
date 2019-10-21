@@ -140,9 +140,10 @@ def parse_args():
     parser.add_argument(
         "-e", "--exclude",
         action="append",
-        help="Delete all instances and domains which ID(s) belong to the configured"
-             " namespace, except for the provided ID(s) (use it once per ID). Can only be"
-             " used with the -a/--all argument.",
+        metavar="NAME",
+        help="Delete all instances and domains which name(s) belong to the configured"
+             " namespace, except for the provided name(s) (use it once per name). Can"
+             " only be used with the -a/--all argument.",
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
@@ -150,8 +151,10 @@ def parse_args():
     group.add_argument(
         "-i", "--instance",
         action="append",
-        help="Only delete the instances and domains for the provided ID(s) instead of all"
-             " of the existing ones in the configured namespace (use it once per ID)."
+        metavar="NAME",
+        help="Only delete the instances and domains for the provided name(s) instead of"
+             " all of the existing ones in the configured namespace (use it once per"
+             " name)."
     )
     group.add_argument(
         "-a", "--all",
