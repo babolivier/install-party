@@ -17,9 +17,13 @@ def filter_entries_dict(entries_dict, args):
     """
 
     if args.instance:
+        # Only keep the entries that are in args.instance.
         filtered_dict = {k: entries_dict[k] for k in args.instance}
     elif args.exclude:
-        # Only keep the entries that are in the dict but not in args.exclude.
+        # Only keep the entries that are in the dict but not in args.exclude. We don't
+        # care about args.all because args.exclude can only be provided if args.all was
+        # provided (therefore the -a/--all argument is more here to help the user
+        # understand how the mode is made to work than to serve an actual function).
         filtered_dict = {
             k: entries_dict[k] for k in set(entries_dict.keys()).difference(args.exclude)
         }
@@ -134,16 +138,31 @@ def parse_args():
              " them.",
     )
     parser.add_argument(
+        "-e", "--exclude",
+        action="append",
+        help="Delete all instances and domains which ID(s) belong to the configured"
+             " namespace, except for the provided ID(s) (use it once per ID). Can only be"
+             " used with the -a/--all argument.",
+    )
+
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         "-i", "--instance",
         action="append",
         help="Only delete the instances and domains for the provided ID(s) instead of all"
              " of the existing ones in the configured namespace (use it once per ID)."
     )
-    parser.add_argument(
-        "-e", "--exclude",
-        action="append",
-        help="Delete all instances and domains which ID(s) belong to the configured"
-             " namespace, except for the provided ID(s) (use it once per ID).",
+    group.add_argument(
+        "-a", "--all",
+        action="store_true",
+        help="Delete all of the instances (except the ones provided with --exclude, if"
+             " any)."
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.exclude and args.instance:
+        parser.error("argument -e/--exclude can only be used with argument -a/--all")
+
+    return args
