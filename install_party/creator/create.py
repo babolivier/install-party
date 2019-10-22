@@ -1,4 +1,5 @@
 import argparse
+import logging
 import random
 import string
 import sys
@@ -9,6 +10,8 @@ import requests
 
 from install_party.dns import dns_provider
 from install_party.util import errors, openstack
+
+logger = logging.getLogger(__name__)
 
 
 def random_string(n):
@@ -37,7 +40,7 @@ def create_instance(name, expected_domain, config):
     """
     nova_client = openstack.get_nova_client(config)
 
-    print("Creating instance...")
+    logger.info("Creating instance...")
 
     # Generate the actual script to run post-creation from the template and the
     # configuration.
@@ -58,7 +61,7 @@ def create_instance(name, expected_domain, config):
         userdata=post_creation_script,
     )
 
-    print("Waiting for instance to become active...")
+    logger.info("Waiting for instance to become active...")
 
     # Wait for the instance to become active.
     status = ""
@@ -90,7 +93,7 @@ def create_record(name, ip_address, config):
     """
     client = dns_provider.get_dns_provider_client(config)
 
-    print("Creating DNS record...")
+    logger.info("Creating DNS record...")
 
     zone = config["dns"]["zone"]
     sub_domain = "%s.%s" % (name, config["general"]["namespace"])
@@ -124,17 +127,19 @@ def create(config):
         name, config["general"]["namespace"], config["dns"]["zone"]
     )
 
-    print("Provisioning host %s (expected domain name %s)" % (name, expected_domain))
+    logger.info(
+        "Provisioning host %s (expected domain name %s)" % (name, expected_domain)
+    )
     # Create the instance with the OpenStack API.
     ip_address = create_instance(name, expected_domain, config)
-    print("Host is active, IPv4 address is", ip_address)
+    logger.info("Host is active, IPv4 address is", ip_address)
     # Create a DNS A record for the instance's IP address using the DNS provider's API.
     record = create_record(name, ip_address, config)
     # We use the data the API gave us in response to highlight any possible mismatch
     # between the domain name we guessed and the one we actually created.
-    print("Created DNS record %s.%s" % (record.sub_domain, record.zone))
+    logger.info("Created DNS record %s.%s" % (record.sub_domain, record.zone))
 
-    print("Waiting for post-creation script to finish...")
+    logger.info("Waiting for post-creation script to finish...")
     # Every second, check if we can reach the host's HTTPS server, and only exit it if we
     # got a response. Because starting up the HTTP(S) server is the last operation
     # performed by the post-creation script, reaching this condition means that the
@@ -148,7 +153,7 @@ def create(config):
         except Exception:
             continue
 
-    print("Done!")
+    logger.info("Done!")
 
 
 def parse_args():

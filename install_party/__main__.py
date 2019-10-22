@@ -1,6 +1,7 @@
 import sys
 import os
 import yaml
+import logging
 
 from install_party.creator.create import create
 from install_party.eraser.delete import delete
@@ -13,6 +14,13 @@ if __name__ == '__main__':
         sys.stderr.write("Usage: install_party.py [mode] [options]\n")
         sys.exit(1)
 
+    # Configure logging.
+    rootLogger = logging.getLogger("install_party")
+    handler = logging.StreamHandler(sys.stdout)
+    rootLogger.addHandler(handler)
+    rootLogger.setLevel(logging.INFO)
+
+    # Read and parse the configuration file.
     config_location = os.getenv("INSTALL_PARTY_CONFIG", "config.yaml")
     config_content = open(config_location).read()
     config = yaml.safe_load(config_content)

@@ -1,5 +1,6 @@
 import argparse
-from typing import Dict, Mapping
+import logging
+from typing import Dict
 
 from tabulate import tabulate
 
@@ -7,8 +8,10 @@ from install_party.dns import dns_provider
 from install_party.util import openstack
 from install_party.util.entry import Entry
 
+logger = logging.getLogger(__name__)
 
-def gather_instances(entries_dict: Mapping[str, Entry], config):
+
+def gather_instances(entries_dict: Dict[str, Entry], config):
     """Gather all instances which name belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
@@ -18,7 +21,7 @@ def gather_instances(entries_dict: Mapping[str, Entry], config):
     """
     nova_client = openstack.get_nova_client(config)
 
-    print("Gathering instances...")
+    logger.debug("Gathering instances...")
 
     # Retrieve all instances which name starts with the namespace and is followed by "-".
     instances = nova_client.servers.list(search_opts={
@@ -34,7 +37,7 @@ def gather_instances(entries_dict: Mapping[str, Entry], config):
             entries_dict[entry_id] = Entry(instance=instance)
 
 
-def gather_records(entries_dict: Mapping[str, Entry], config):
+def gather_records(entries_dict: Dict[str, Entry], config):
     """Gather all DNS records which sub-domain belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
@@ -44,7 +47,7 @@ def gather_records(entries_dict: Mapping[str, Entry], config):
     """
     client = dns_provider.get_dns_provider_client(config)
 
-    print("Gathering DNS records...")
+    logger.debug("Gathering DNS records...")
 
     records = client.get_sub_domains(
         config["general"]["namespace"], config["dns"]["zone"]
@@ -59,7 +62,7 @@ def gather_records(entries_dict: Mapping[str, Entry], config):
             entries_dict[entry_id] = Entry(record=record)
 
 
-def sort_entries(entries_dict: Mapping[str, Entry]):
+def sort_entries(entries_dict: Dict[str, Entry]):
     """Process a dict populated by gather_instances and gather_domains and sorts its
     entries into three lists: one containing the entries that have both an instance and a
     domain, one containing those that only have a domain, and one containing those that
@@ -192,10 +195,20 @@ def parse_args():
         description="List existing servers.",
     )
     parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Increases the verbosity."
+    )
+    parser.add_argument(
         "--hide-orphans",
         action="store_true",
         help="Hide instances without a domain and domains without an instance. Defaults"
              " to false.",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger("install_party").setLevel(logging.DEBUG)
+
+    return args

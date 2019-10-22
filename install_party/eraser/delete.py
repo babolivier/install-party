@@ -1,11 +1,14 @@
 import argparse
-from typing import Dict, Mapping
+import logging
+from typing import Dict
 
 from install_party.dns import dns_provider
 from install_party.dns.dns_provider_client import DNSRecord, DNSProviderClient
 from install_party.lister.list import get_list
 from install_party.util import openstack
 from install_party.util.entry import Entry
+
+logger = logging.getLogger(__name__)
 
 
 def filter_entries_dict(entries_dict, args) -> Dict[str, Entry]:
@@ -50,14 +53,14 @@ def delete_instance(entry_id, instance, nova_client, dry_run):
         nova_client (Client): The OpenStack Nova client to use to perform the deletion.
         dry_run (bool): Whether we're running in dry-run mode.
     """
-    print("Deleting instance for id %s..." % entry_id)
+    logger.info("Deleting instance for name %s..." % entry_id)
 
     # Only delete if the dry-run mode is off.
     if not dry_run:
         try:
             nova_client.servers.delete(instance)
         except Exception as e:
-            print("Failed to delete instance for %s:" % entry_id, e)
+            logger.error("Failed to delete instance for %s:" % entry_id, e)
 
 
 def delete_record(
@@ -75,14 +78,14 @@ def delete_record(
             the deletion.
         dry_run (bool): Whether we're running in dry-run mode.
     """
-    print("Deleting domain name for id %s..." % entry_id)
+    logger.info("Deleting domain name for name %s..." % entry_id)
 
     # Only delete if the dry-run mode is off.
     if not dry_run:
         try:
             client.delete_sub_domain(record)
         except Exception as e:
-            print("Failed to delete domain name for %s:" % entry_id, e)
+            logger.error("Failed to delete domain name for %s:" % entry_id, e)
 
 
 def delete(config):
@@ -95,7 +98,7 @@ def delete(config):
 
     # Warn that we're running in dry-run mode if it's the case.
     if args.dry_run:
-        print("Running in dry-run mode.")
+        logger.info("Running in dry-run mode.")
 
     # Populate the dict of entries.
     entries_dict = get_list(config)
@@ -120,19 +123,24 @@ def delete(config):
         if record:
             delete_record(entry_id, record, dns_client, args.dry_run)
 
-    print("Applying the DNS changes...")
+    logger.info("Applying the DNS changes...")
 
     if not args.dry_run:
         # Refresh the DNS server's configuration to make it aware of the changes.
         dns_client.commit(config["dns"]["zone"])
 
-    print("Done!")
+    logger.info("Done!")
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="install_party delete",
         description="Delete existing servers.",
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Increases the verbosity."
     )
     parser.add_argument(
         "-d", "--dry-run",
@@ -169,5 +177,8 @@ def parse_args():
 
     if args.exclude and not args.all:
         parser.error("argument -e/--exclude can only be used with argument -a/--all")
+
+    if args.verbose:
+        logging.getLogger("install_party").setLevel(logging.DEBUG)
 
     return args
