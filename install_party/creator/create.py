@@ -136,19 +136,17 @@ def create(config):
 
     print("Waiting for post-creation script to finish...")
     # Every second, check if we can reach the host's HTTPS server, and only exit it if we
-    # got a 200 OK response. Because starting up the HTTP(S) server is the last operation
+    # got a response. Because starting up the HTTP(S) server is the last operation
     # performed by the post-creation script, reaching this condition means that the
     # execution finished successfully.
     while True:
         time.sleep(1)
 
         try:
-            response = requests.get("https://%s" % expected_domain)
+            requests.get("http://%s" % expected_domain)
+            break
         except Exception:
             continue
-
-        if response.status_code == 200:
-            break
 
     print("Done!")
 
