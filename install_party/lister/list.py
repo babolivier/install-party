@@ -1,12 +1,14 @@
 import argparse
+from typing import Dict, Mapping
 
 from tabulate import tabulate
 
 from install_party.dns import dns_provider
 from install_party.util import openstack
+from install_party.util.entry import Entry
 
 
-def gather_instances(entries_dict, config):
+def gather_instances(entries_dict: Mapping[str, Entry], config):
     """Gather all instances which name belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
@@ -27,12 +29,12 @@ def gather_instances(entries_dict, config):
     for instance in instances:
         entry_id = instance.name.split("-", 1)[1]
         if entry_id in entries_dict:
-            entries_dict[entry_id]["instance"] = instance
+            entries_dict[entry_id].instance = instance
         else:
-            entries_dict[entry_id] = {"instance": instance}
+            entries_dict[entry_id] = Entry(instance=instance)
 
 
-def gather_records(entries_dict, config):
+def gather_records(entries_dict: Mapping[str, Entry], config):
     """Gather all DNS records which sub-domain belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
@@ -52,12 +54,12 @@ def gather_records(entries_dict, config):
         # Edit the entries dictionary to add the record's information.
         entry_id = record.sub_domain.split(".", 1)[0]
         if entry_id in entries_dict:
-            entries_dict[entry_id]["record"] = record
+            entries_dict[entry_id].record = record
         else:
-            entries_dict[entry_id] = {"record": record}
+            entries_dict[entry_id] = Entry(record=record)
 
 
-def sort_entries(entries_dict):
+def sort_entries(entries_dict: Mapping[str, Entry]):
     """Process a dict populated by gather_instances and gather_domains and sorts its
     entries into three lists: one containing the entries that have both an instance and a
     domain, one containing those that only have a domain, and one containing those that
@@ -79,8 +81,8 @@ def sort_entries(entries_dict):
     orphaned_instances = []
     orphaned_domains = []
     for entries_dict, entry in entries_dict.items():
-        instance = entry.get("instance")
-        record = entry.get("record")
+        instance = entry.instance
+        record = entry.record
 
         if record:
             # Generate the full domain name for this entry from the domain's info.
@@ -111,7 +113,7 @@ def sort_entries(entries_dict):
     return complete_entries, orphaned_domains, orphaned_instances
 
 
-def get_list(config):
+def get_list(config) -> Dict[str, Entry]:
     """Retrieve a list of all instances and DNS records under a configured namespace.
 
     Args:

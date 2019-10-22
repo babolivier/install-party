@@ -1,12 +1,14 @@
 import argparse
+from typing import Dict, Mapping
 
 from install_party.dns import dns_provider
 from install_party.dns.dns_provider_client import DNSRecord, DNSProviderClient
 from install_party.lister.list import get_list
 from install_party.util import openstack
+from install_party.util.entry import Entry
 
 
-def filter_entries_dict(entries_dict, args):
+def filter_entries_dict(entries_dict, args) -> Dict[str, Entry]:
     """Filter the entries dict according to the command-line arguments.
 
     Args:
@@ -107,8 +109,8 @@ def delete(config):
 
     # Loop over the entries to delete and delete them.
     for entry_id, entry in entries_to_delete.items():
-        instance = entry.get("instance")
-        record = entry.get("record")
+        instance = entry.instance
+        record = entry.record
 
         # If we know about an instance for this entry, delete it.
         if instance:
