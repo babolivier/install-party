@@ -7,7 +7,8 @@ import os
 
 import requests
 
-from install_party.util import errors, openstack, ovh
+from install_party.dns import dns_provider
+from install_party.util import errors, openstack
 
 
 def random_string(n):
@@ -75,7 +76,7 @@ def create_instance(name, expected_domain, config):
 
 
 def create_record(name, ip_address, config):
-    """Create a DNS A record to attach to an instance using the OVH API.
+    """Create a DNS A record to attach to an instance using the DNS provider's API.
 
     Args:
         name (str): The prefix for the DNS record's subdomain. The final subdomain will be
@@ -85,24 +86,21 @@ def create_record(name, ip_address, config):
         config (dict): The parsed configuration.
 
     Returns:
-         dict: The parsed JSON response to the record creation request.
+         The created DNS record.
     """
-    ovh_client = ovh.get_ovh_client(config)
+    client = dns_provider.get_dns_provider_client(config)
 
     print("Creating DNS record...")
 
-    # Create a new DNS record in the configured zone.
-    record = ovh_client.post(
-        "/domain/zone/%s/record" % config["general"]["dns_zone"],
-        fieldType="A",
-        subDomain="%s.%s" % (name, config["general"]["namespace"]),
-        target=ip_address,
-    )
+    zone = config["dns"]["zone"]
+    sub_domain = "%s.%s" % (name, config["general"]["namespace"])
+
+    record = client.create_sub_domain(sub_domain, ip_address, zone)
 
     print("Refreshing the DNS zone...")
 
     # Refresh the DNS server's configuration to make it aware of the new record.
-    ovh_client.post("/domain/zone/%s/refresh" % config["general"]["dns_zone"])
+    client.commit(zone)
 
     return record
 
@@ -125,18 +123,18 @@ def create(config):
     # Guess what the final domain name for the host is going to be. This is used for
     # inserting the right values in the post-creation script template.
     expected_domain = "%s.%s.%s" % (
-        name, config["general"]["namespace"], config["general"]["dns_zone"]
+        name, config["general"]["namespace"], config["dns"]["zone"]
     )
 
     print("Provisioning host %s (expected domain name %s)" % (name, expected_domain))
     # Create the instance with the OpenStack API.
     ip_address = create_instance(name, expected_domain, config)
     print("Host is active, IPv4 address is", ip_address)
-    # Create a DNS A record for the instance's IP address using OVH's API.
+    # Create a DNS A record for the instance's IP address using the DNS provider's API.
     record = create_record(name, ip_address, config)
     # We use the data the API gave us in response to highlight any possible mismatch
     # between the domain name we guessed and the one we actually created.
-    print("Created DNS record %s.%s" % (record["subDomain"], record["zone"]))
+    print("Created DNS record %s.%s" % (record.sub_domain, record.zone))
 
     print("Waiting for post-creation script to finish...")
     # Every second, check if we can reach the host's HTTPS server, and only exit it if we
@@ -154,7 +152,7 @@ def create(config):
         if response.status_code == 200:
             break
 
-    print("Host created and provisioned!")
+    print("Done!")
 
 
 def parse_args():

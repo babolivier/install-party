@@ -1,7 +1,9 @@
 import argparse
 
+from install_party.dns import dns_provider
+from install_party.dns.dns_provider_client import DNSRecord, DNSProviderClient
 from install_party.lister.list import get_list
-from install_party.util import openstack, ovh
+from install_party.util import openstack
 
 
 def filter_entries_dict(entries_dict, args):
@@ -56,28 +58,27 @@ def delete_instance(entry_id, instance, nova_client, dry_run):
             print("Failed to delete instance for %s:" % entry_id, e)
 
 
-def delete_record(entry_id, record, ovh_client, config, dry_run):
+def delete_record(
+        entry_id: str,
+        record: DNSRecord,
+        client: DNSProviderClient,
+        dry_run: bool
+):
     """Delete the DNS record associated with the provided entry.
 
     Args:
-        entry_id (str): The ID of the entry we're deleting the instance of.
-        record (dict): A dict containing the response to
-            https://api.ovh.com/console/#/domain/zone/%7BzoneName%7D/record/%7Bid%7D#GET
-        ovh_client (Client): The OVH client to use to perform the deletion.
-        config (dict): The parsed configuration.
+        entry_id (str): The ID of the entry we're deleting the DNS record of.
+        record (DNSRecord): The DNS record to delete.
+        client (DNSProviderClient): A client to the DNS provider's API to use to perform
+            the deletion.
         dry_run (bool): Whether we're running in dry-run mode.
     """
     print("Deleting domain name for id %s..." % entry_id)
 
     # Only delete if the dry-run mode is off.
     if not dry_run:
-        record_id = record["id"]
         try:
-            ovh_client.delete(
-                "/domain/zone/%s/record/%s" % (
-                    config["general"]["dns_zone"], record_id,
-                )
-            )
+            client.delete_sub_domain(record)
         except Exception as e:
             print("Failed to delete domain name for %s:" % entry_id, e)
 
@@ -99,7 +100,7 @@ def delete(config):
 
     # Instantiate the OpenStack and OVH clients.
     nova_client = openstack.get_nova_client(config)
-    ovh_client = ovh.get_ovh_client(config)
+    dns_client = dns_provider.get_dns_provider_client(config)
 
     # Filter the entries_dict accordingly with the arguments.
     entries_to_delete = filter_entries_dict(entries_dict, args)
@@ -115,13 +116,13 @@ def delete(config):
 
         # If we know about a domain name for this entry, delete it.
         if record:
-            delete_record(entry_id, record, ovh_client, config, args.dry_run)
+            delete_record(entry_id, record, dns_client, args.dry_run)
 
     print("Refreshing the DNS zone...")
 
     if not args.dry_run:
         # Refresh the DNS server's configuration to make it aware of the changes.
-        ovh_client.post("/domain/zone/%s/refresh" % config["general"]["dns_zone"])
+        dns_client.commit(config["dns"]["zone"])
 
     print("Done!")
 

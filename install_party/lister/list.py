@@ -2,7 +2,8 @@ import argparse
 
 from tabulate import tabulate
 
-from install_party.util import openstack, ovh
+from install_party.dns import dns_provider
+from install_party.util import openstack
 
 
 def gather_instances(entries_dict, config):
@@ -32,38 +33,24 @@ def gather_instances(entries_dict, config):
 
 
 def gather_domains(entries_dict, config):
-    """Gather all domain names which subdomain belongs to the namespace defined in the
+    """Gather all domain names which sub-domain belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
     Args:
         entries_dict (dict): The dict to add the domain names' info to.
         config (dict): The parsed configuration.
     """
-    ovh_client = ovh.get_ovh_client(config)
+    client = dns_provider.get_dns_provider_client(config)
 
     print("Gathering domains...")
 
-    # Retrieve all DNS records which sub domain ends with "." followed by the namespace.
-    sub_domain_filter = "%25.{namespace}".format(
-        namespace=config["general"]["namespace"],
+    records = client.get_sub_domains(
+        config["general"]["namespace"], config["dns"]["zone"]
     )
 
-    record_ids = ovh_client.get(
-        "/domain/zone/%s/record?subDomain=%s" % (
-            config["general"]["dns_zone"], sub_domain_filter
-        )
-    )
-
-    # Retrieve data on each sub domain.
-    for record_id in record_ids:
-        record = ovh_client.get(
-            "/domain/zone/%s/record/%s" % (
-                config["general"]["dns_zone"], record_id
-            )
-        )
-
+    for record in records:
         # Edit the entries dictionary to add the record's information.
-        entry_id = record["subDomain"].split(".", 1)[0]
+        entry_id = record.sub_domain.split(".", 1)[0]
         if entry_id in entries_dict:
             entries_dict[entry_id]["domain"] = record
         else:
@@ -97,12 +84,12 @@ def sort_entries(entries_dict):
 
         if domain:
             # Generate the full domain name for this entry from the domain's info.
-            full_domain = "%s.%s" % (domain["subDomain"], domain["zone"])
+            full_domain = "%s.%s" % (domain.sub_domain, domain.zone)
 
         if instance is None:
             # We're sure that domain is not None (and therefore full_domain is defined)
             # here because otherwise this ID wouldn't be in the dict.
-            orphaned_domains.append([entries_dict, full_domain, domain["target"]])
+            orphaned_domains.append([entries_dict, full_domain, domain.target])
         elif domain is None:
             # We're sure that instance is not None here because otherwise this ID wouldn't
             # be in the dict.
@@ -139,8 +126,7 @@ def get_list(config):
 
         where "instance" is the instance associated with this ID (as returned by
         nova_client.servers.list) and "domain" is the domain name associated with this ID
-        (a dict containing the response to
-        https://api.ovh.com/console/#/domain/zone/%7BzoneName%7D/record/%7Bid%7D#GET)
+        (a DNSRecord object).
     """
     # Initialise the empty dict which will be populated later.
     entries_dict = {}
