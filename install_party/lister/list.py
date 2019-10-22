@@ -32,8 +32,8 @@ def gather_instances(entries_dict, config):
             entries_dict[entry_id] = {"instance": instance}
 
 
-def gather_domains(entries_dict, config):
-    """Gather all domain names which sub-domain belongs to the namespace defined in the
+def gather_records(entries_dict, config):
+    """Gather all DNS records which sub-domain belongs to the namespace defined in the
     configuration and add their info to a given dict.
 
     Args:
@@ -42,7 +42,7 @@ def gather_domains(entries_dict, config):
     """
     client = dns_provider.get_dns_provider_client(config)
 
-    print("Gathering domains...")
+    print("Gathering DNS records...")
 
     records = client.get_sub_domains(
         config["general"]["namespace"], config["dns"]["zone"]
@@ -52,9 +52,9 @@ def gather_domains(entries_dict, config):
         # Edit the entries dictionary to add the record's information.
         entry_id = record.sub_domain.split(".", 1)[0]
         if entry_id in entries_dict:
-            entries_dict[entry_id]["domain"] = record
+            entries_dict[entry_id]["record"] = record
         else:
-            entries_dict[entry_id] = {"domain": record}
+            entries_dict[entry_id] = {"record": record}
 
 
 def sort_entries(entries_dict):
@@ -80,17 +80,17 @@ def sort_entries(entries_dict):
     orphaned_domains = []
     for entries_dict, entry in entries_dict.items():
         instance = entry.get("instance")
-        domain = entry.get("domain")
+        record = entry.get("record")
 
-        if domain:
+        if record:
             # Generate the full domain name for this entry from the domain's info.
-            full_domain = "%s.%s" % (domain.sub_domain, domain.zone)
+            full_domain = "%s.%s" % (record.sub_domain, record.zone)
 
         if instance is None:
             # We're sure that domain is not None (and therefore full_domain is defined)
             # here because otherwise this ID wouldn't be in the dict.
-            orphaned_domains.append([entries_dict, full_domain, domain.target])
-        elif domain is None:
+            orphaned_domains.append([entries_dict, full_domain, record.target])
+        elif record is None:
             # We're sure that instance is not None here because otherwise this ID wouldn't
             # be in the dict.
             orphaned_instances.append([
@@ -112,7 +112,7 @@ def sort_entries(entries_dict):
 
 
 def get_list(config):
-    """Retrieve a list of all instances and domain names under a configured namespace.
+    """Retrieve a list of all instances and DNS records under a configured namespace.
 
     Args:
         config (dict): The parsed configuration.
@@ -121,11 +121,11 @@ def get_list(config):
         A dict containing the entries, looking like
 
         {
-            "<id>": {"instance": ..., "domain": ...},
+            "<id>": {"instance": ..., "record": ...},
         }
 
         where "instance" is the instance associated with this ID (as returned by
-        nova_client.servers.list) and "domain" is the domain name associated with this ID
+        nova_client.servers.list) and "record" is the DNS record associated with this ID
         (a DNSRecord object).
     """
     # Initialise the empty dict which will be populated later.
@@ -133,26 +133,27 @@ def get_list(config):
 
     # Populate the dict with instances.
     gather_instances(entries_dict, config)
-    # Populate the dict with domains.
-    gather_domains(entries_dict, config)
+    # Populate the dict with DNS records.
+    gather_records(entries_dict, config)
 
     return entries_dict
 
 
 def get_and_print_list(config):
-    """Retrieve a list of all instances and domain names under a configured namespace and
+    """Retrieve a list of all instances and dDNS record under a configured namespace and
     print a table listing them and associating each instance with its domain name.
 
-    If an instance doesn't have a domain name associated, or vice-versa, the entry is
+    If an instance doesn't have a DNS record associated, or vice-versa, the entry is
     listed in one of two extra tables (depending on what is missing). Each of those extra
-    tables is only displayed if it contains at least one entry.
+    tables is only displayed if it contains at least one entry (unless explicitly told not
+    to by the command-line arguments).
 
     Args:
         config (dict): The parsed configuration.
     """
     args = parse_args()
 
-    # Retrieve the list of instances and domain names.
+    # Retrieve the list of instances and DNS record.
     entries_dict = get_list(config)
 
     # Sort the entries into three lists.

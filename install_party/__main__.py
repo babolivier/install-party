@@ -37,5 +37,7 @@ if __name__ == '__main__':
     elif mode == "delete":
         delete(config)
     else:
-        sys.stderr.write("Unknown mode %s. Available modes: create, list\n" % mode)
+        sys.stderr.write(
+            "Unknown mode %s. Available modes: create, list, delete\n" % mode
+        )
 

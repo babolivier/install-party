@@ -108,17 +108,17 @@ def delete(config):
     # Loop over the entries to delete and delete them.
     for entry_id, entry in entries_to_delete.items():
         instance = entry.get("instance")
-        record = entry.get("domain")
+        record = entry.get("record")
 
         # If we know about an instance for this entry, delete it.
         if instance:
             delete_instance(entry_id, instance, nova_client, args.dry_run)
 
-        # If we know about a domain name for this entry, delete it.
+        # If we know about a DNS record for this entry, delete it.
         if record:
             delete_record(entry_id, record, dns_client, args.dry_run)
 
-    print("Refreshing the DNS zone...")
+    print("Applying the DNS changes...")
 
     if not args.dry_run:
         # Refresh the DNS server's configuration to make it aware of the changes.

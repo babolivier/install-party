@@ -97,9 +97,7 @@ def create_record(name, ip_address, config):
 
     record = client.create_sub_domain(sub_domain, ip_address, zone)
 
-    print("Refreshing the DNS zone...")
-
-    # Refresh the DNS server's configuration to make it aware of the new record.
+    # Apply the new configuration.
     client.commit(zone)
 
     return record
