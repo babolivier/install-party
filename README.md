@@ -68,8 +68,6 @@ The configuration file's content must follow the following structure. Currently,
 general:
   # Namespace to use when creating/listing the instances and DNS records.
   namespace: my-super-event
-  # DNS zone to create the DNS records on.
-  dns_zone: example.com
   # The version of Riot to install on the hosts.
   riot_version: v1.4.2
 
@@ -83,11 +81,22 @@ instances:
 
 # Configuration to connect to the OVH API.
 # See https://api.ovh.com/ for a full documentation.
-ovh:
-  endpoint: ovh-eu
-  application_key: somesecret
-  application_secret: somesecret
-  consumer_key: somesecret
+
+# Configuration for connecting to the DNS provider and creating the DNS
+# record.
+dns:
+  # DNS zone to create the DNS records on.
+  zone: example.com
+  # DNS provider to use. Must be a supported provider. See which
+  # providers are supported in install_party/dns/providers (there is a
+  # file for each supported provider.
+  provider: ovh
+  # Arguments to provide to the DNS provider's API client.
+  args:
+    endpoint: ovh-eu
+    application_key: SOME_KEY
+    application_secret: SOME_SECRET
+    consumer_key: SOME_KEY
 
 # Configuration to connect to the OpenStack API or that is using notions
 # specific to OpenStack.
@@ -108,6 +117,56 @@ openstack:
   flavor_id: my_super_flavor
 ```
 
+## DNS providers
+
+Install Party will use the configured DNS provider (if supported) to
+create DNS records for the servers it creates, and also to list and
+delete DNS records.
+
+### Supported providers
+
+Here are the DNS providers supported by Install Party, along with their
+name (i.e. what to write under `provider` in the configuration file) and
+their API client's configuration arguments (i.e. what to write in `args`
+in the configuration file).
+
+#### OVH
+
+**Provider name:** `ovh`
+
+**Configuration arguments:**
+
+You first need to create an app on the OVH library to use this provider,
+see https://docs.ovh.com/gb/en/customer/first-steps-with-ovh-api/ for
+more information. If you want to limit the app's access, you can
+restrict it to use only the methods `GET`, `POST` and `DELETE` on the
+routes `/domain/zone/*`.
+
+Then provide your app's application key, application secret key and
+consumer key (along with the API endpoint to use):
+
+```yaml
+endpoint: ovh-eu
+application_key: SOME_KEY
+application_secret: SOME_SECRET
+consumer_key: SOME_KEY
+```
+
+### Adding support for a DNS provider
+
+To add support for a DNS provider, simply add a Python code file in
+`install_party/dns/providers` which inherits from the
+`install_party.dns.dns_provider.DNSProviderClient` class and implements
+its methods. It must then expose this class in a variable named
+`provider_client_class` (i.e. add `provider_class = MyProviderClient` at
+the end of the file).
+
+You can then use this provider by providing the name of the Python file
+(without the `.py` extension) as the DNS provider in the configuration
+file.
+
 ## Limitations
 
-As pointed out above, Install Party is designed to only work with domains managed by OVH and infrastructure projects managed by an OpenStack provider. There is currently no plan to expand this list of providers.
+As pointed out above, Install Party is designed to only work with
+infrastructure projects managed by an OpenStack provider. There is
+currently no plan to expand this list of providers.
