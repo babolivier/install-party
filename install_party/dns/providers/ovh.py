@@ -57,3 +57,6 @@ class OvhDNSProviderClient(DNSProviderClient):
 
     def commit(self, zone):
         self.client.post("/domain/zone/%s/refresh" % zone)
+
+
+provider_client_class = OvhDNSProviderClient

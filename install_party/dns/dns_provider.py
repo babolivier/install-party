@@ -1,3 +1,5 @@
+import importlib
+
 from install_party.dns.dns_provider_client import DNSProviderClient
 from install_party.util.errors import UnknownProviderError
 
@@ -18,9 +20,10 @@ def get_dns_provider_client(config) -> DNSProviderClient:
     provider = config["dns"]["provider"]
     args = config["dns"]["args"]
 
-    if provider == "ovh":
-        from install_party.dns.ovh import OvhDNSProviderClient
-        return OvhDNSProviderClient(args)
-    else:
-        raise UnknownProviderError("Unsupported DNS provider %s" % provider)
+    try:
+        provider_import_path = "install_party.dns.providers.%s" % provider
+        provider = importlib.import_module(provider_import_path)
 
+        return provider.provider_client_class(args)
+    except ModuleNotFoundError:
+        raise UnknownProviderError("Unsupported DNS provider %s" % provider)
