@@ -106,20 +106,14 @@ def create_record(name, ip_address, config):
     return record
 
 
-def create(config):
+def create_server(config, name):
     """Create an instance, attach a domain name to it, and wait until the instance's
     boot script has been run.
 
     Args:
         config (dict): The parsed configuration.
+        name (str): The name of the server.
     """
-    args = parse_args()
-
-    # Generate a random name (5 lowercase letters) if none was provided.
-    if args.name is None:
-        name = random_string(5)
-    else:
-        name = args.name
 
     # Guess what the final domain name for the host is going to be. This is used for
     # inserting the right values in the post-creation script template.
@@ -156,16 +150,46 @@ def create(config):
     logger.info("Done!")
 
 
+def create(config):
+    args = parse_args()
+
+    if args.number:
+        number_to_create = int(args.number)
+
+        # Create the n servers.
+        for i in range(number_to_create):
+            # Generate a random name for the server.
+            name = random_string(5)
+            # Create the server.
+            create_server(config, name)
+    else:
+        # Generate a random name (5 lowercase letters) if none was provided.
+        if args.name is None:
+            name = random_string(5)
+        else:
+            name = args.name
+
+        # Create the server.
+        create_server(config, name)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="install_party create",
         description="Create a new instance and attach a domain name to it.",
     )
-    parser.add_argument(
-        "--name",
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-n", "--name",
         help="Name to give the instance, and to build its domain name from. Defaults to a"
              " random string of 5 lowercase letters. Can only contain the characters"
-             " allowed in a domain name label."
+             " allowed in a domain name label. Cannot be used in combination with"
+             " -N/--number."
+    )
+    group.add_argument(
+        "-N", "--number",
+        help="Number of servers to create. Each server's name will be a random string of"
+             " 5 lowercase letters. Cannot be used in combination with -n/--name."
     )
 
     return parser.parse_args()
