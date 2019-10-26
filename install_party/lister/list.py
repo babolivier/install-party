@@ -200,7 +200,7 @@ def parse_args():
         help="Increases the verbosity."
     )
     parser.add_argument(
-        "--hide-orphans",
+        "-H", "--hide-orphans",
         action="store_true",
         help="Hide instances without a domain and domains without an instance. Defaults"
              " to false.",
