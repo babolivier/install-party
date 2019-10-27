@@ -26,7 +26,9 @@ The OpenStack instance name will be `{namespace}-{name}` and the domain name wil
 * `{zone}` is a configured DNS zone (must be managed by OVH)
 * `{name}` is the host's name (either provided, e.g. `install_party create --name foo`, or a randomly generated 5-letter string)
 
-Note: currently, if attendees wish/need to use a homeserver's built-in ACME support, they **must** set the post the ACME support listener is listening to to `8888`.
+Note: currently, if attendees wish/need to use a homeserver's built-in ACME support, they must set the post the ACME support listener is listening to to `8888`.
+
+Creating multiple servers in the same run is possible by using the command-line argument `-N x` where `x` is the number of servers to create. If one or more creation(s) failed, Install Party will not automatically attempt to recreate them.
 
 ## List mode
 
