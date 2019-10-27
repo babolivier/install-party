@@ -1,6 +1,7 @@
 # Install Party
 
-This is a project that creates and manages ephemeral servers for install parties/workshops of Matrix homeservers.
+This is a project that creates and manages ephemeral servers for install
+parties/workshops of [Matrix](https://matrix.org) homeservers.
 
 ## Install and run
 
@@ -13,12 +14,20 @@ pip install install-party
 Then it can be run with:
 
 ```bash
-python -m install_party [mode] [options]
+python -m install_party [mode] [arguments]
 ```
+
+Every mode can be run with the `-h` argument to display the list of
+arguments it supports.
 
 ## Creation mode
 
-The creation mode (`create`) uses the OpenStack and OVH APIs to create a new host, attach a domain to it, and run a script that installs Riot and Caddy on it, so that an attendee can log in (with SSH) with the configured username and password, install a new homeserver, and directly use it with the Riot instance.
+The creation mode (`create`) uses the OpenStack and OVH APIs to create a
+new host, attach a domain to it, and run a script that installs
+[Riot](https://github.com/vector-im/riot-web) and
+[Caddy](https://caddyserver.com/) on it, so that an attendee can log in
+(with SSH) with the configured username and password, install a new
+homeserver, and directly use it with the Riot instance.
 
 The OpenStack instance name will be `{namespace}-{name}` and the domain name will be `{name}.{namespace}.{zone}`, where:
 
@@ -26,19 +35,32 @@ The OpenStack instance name will be `{namespace}-{name}` and the domain name wil
 * `{zone}` is a configured DNS zone (must be managed by OVH)
 * `{name}` is the host's name (either provided, e.g. `install_party create --name foo`, or a randomly generated 5-letter string)
 
-Note: currently, if attendees wish/need to use a homeserver's built-in ACME support, they must set the post the ACME support listener is listening to to `8888`.
+Note: currently, if attendees wish/need to use a homeserver's built-in
+ACME support, they must set the post the ACME support listener is
+listening to to `8888`.
 
-Creating multiple servers in the same run is possible by using the command-line argument `-N x` where `x` is the number of servers to create. If one or more creation(s) failed, Install Party will not automatically attempt to recreate them.
+Creating multiple servers in the same run is possible by using the
+command-line argument `-N x` where `x` is the number of servers to
+create. If one or more creation(s) failed, Install Party will not
+automatically attempt to recreate them.
 
 ## List mode
 
-The list mode (`list`) prints a table listing the existing servers and domains under the namespace and DNS zone configured in the configuration file, along with their status.
+The list mode (`list`) prints a table listing the existing servers and
+domains under the namespace and DNS zone configured in the configuration
+file, along with their status.
 
-If an instance has no domain attached, or if a domain isn't attached to an existing instance, they will be listed in separate tables (named `ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables can be hidden by using the command-line flag `--hide-orphans`.
+If an instance has no domain attached, or if a domain isn't attached to
+an existing instance, they will be listed in separate tables (named
+`ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables
+can be hidden by using the command-line flag `--hide-orphans`.
 
 ## Deletion mode
 
-The deletion mode (`delete`) deletes one or more instance(s) along with the associated domain name(s). The instances to delete are defined by the command-line arguments. This mode currently accepts the following arguments:
+The deletion mode (`delete`) deletes one or more instance(s) along with
+the associated domain name(s). The instances to delete are defined by
+the command-line arguments. This mode currently accepts the following
+arguments:
 
 * `-a/--all`: delete all instances and domains in the configured namespace. Can't be used together with `-s/--server NAME`.
 * `-e/--exclude NAME`: exclude one or more server(s) from the deletion. Can only be used with `-a/--all`. Repeat this argument for every server you want to exclude from the deletion. `NAME` is the name of the server (without the namespace).
@@ -47,13 +69,15 @@ The deletion mode (`delete`) deletes one or more instance(s) along with the asso
 
 One of `-a/--all` or `-s/--server NAME` must be provided.
 
-For example, deleting every server but the ones named `matrixtest1` and `matrixtest2` would look like this:
+For example, deleting every server but the ones named `matrixtest1` and
+`matrixtest2` would look like this:
 
 ```
 install_party delete --all --exclude matrixtest1 --exclude matrixtest2
 ```
 
-On the other hand, deleting only the servers named `matrixtest1` and `matrixtest2` would look like this:
+On the other hand, deleting only the servers named `matrixtest1` and
+`matrixtest2` would look like this:
 
 ```
 install_party delete --server matrixtest1 --server matrixtest2
@@ -61,9 +85,13 @@ install_party delete --server matrixtest1 --server matrixtest2
 
 ## Configuration
 
-The configuration is provided as a YAML configuration file. By default, a file named `config.yaml` in the current directory will be used, but this can be overridden by setting the environment variable `INSTALL_PARTY_CONFIG` to the path of the desired file.
+The configuration is provided as a YAML configuration file. By default,
+a file named `config.yaml` in the current directory will be used, but
+this can be overridden by setting the environment variable
+`INSTALL_PARTY_CONFIG` to the path of the desired file.
 
-The configuration file's content must follow the following structure. Currently, all fields are mandatory.
+The configuration file's content must follow the following structure.
+Currently, all fields are mandatory.
 
 ```yaml
 # General configuration that's not specific to a section.
