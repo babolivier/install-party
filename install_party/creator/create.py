@@ -122,11 +122,11 @@ def create_server(config, name):
     )
 
     logger.info(
-        "Provisioning host %s (expected domain name %s)" % (name, expected_domain)
+        "Provisioning server %s (expected domain name %s)" % (name, expected_domain)
     )
     # Create the instance with the OpenStack API.
     ip_address = create_instance(name, expected_domain, config)
-    logger.info("Host is active, IPv4 address is", ip_address)
+    logger.info("Host is active, IPv4 address is %s", ip_address)
     # Create a DNS A record for the instance's IP address using the DNS provider's API.
     record = create_record(name, ip_address, config)
     # We use the data the API gave us in response to highlight any possible mismatch
@@ -156,12 +156,37 @@ def create(config):
     if args.number:
         number_to_create = int(args.number)
 
+        server_domain_names = []
+        failures = 0
+
         # Create the n servers.
         for i in range(number_to_create):
             # Generate a random name for the server.
             name = random_string(5)
-            # Create the server.
-            create_server(config, name)
+            try:
+                # Create the server and stave its domain name.
+                domain_name = create_server(name, config)
+                server_domain_names.append(domain_name)
+            except Exception as e:
+                logger.error(
+                    "An error happened while creating the server, skipping: %s", e
+                )
+                failures += 1
+
+        if failures < number_to_create:
+            if failures:
+                logger.info(
+                    "\n%d servers over %d have been created:",
+                    number_to_create - failures, number_to_create
+                )
+            else:
+                logger.info("\nAll servers have been created:")
+
+            # Print the domain names of all of the servers created.
+            for domain_name in server_domain_names:
+                logger.info("\t- %s", domain_name)
+        else:
+            logger.info("\nAll servers have failed to create.")
     else:
         # Generate a random name (5 lowercase letters) if none was provided.
         if args.name is None:
