@@ -4,3 +4,7 @@ class InstanceCreationError(Exception):
 
 class UnknownProviderError(Exception):
     pass
+
+
+class ConnectivityCheckError(Exception):
+    pass

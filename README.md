@@ -70,6 +70,11 @@ general:
   namespace: my-super-event
   # The version of Riot to install on the hosts.
   riot_version: v1.4.2
+  # Maximum number of seconds to seconds to spend on checking if the
+  # server is online after its creation. If this duration is reached,
+  # the check will be aborted and the creation will be considered a
+  # failure. 
+  connectivity_check_timeout: 300
 
 # Configuration specific to the instances.
 instances:

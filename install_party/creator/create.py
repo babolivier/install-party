@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 import random
 import string
@@ -106,13 +107,46 @@ def create_record(name, ip_address, config):
     return record
 
 
-def create_server(config, name):
+def check_connectivity(domain_name, config):
+    """Every second, check if we can reach the host's HTTPS server, and only exit it if we
+    got a response.
+
+    Because starting up the HTTP(S) server is the last operation performed by the
+    post-creation script, reaching this condition means that the execution finished
+    successfully.
+
+    Args:
+        domain_name (str): The domain name to perform the connectivity check on.
+        config (dict): The parsed configuration.
+
+    Raises:
+        ConnectivityCheckError: The connectivity check had to be aborted (e.g. if it timed
+            out)
+    """
+
+    before = datetime.datetime.now().timestamp()
+
+    while True:
+        time.sleep(1)
+
+        try:
+            requests.get("http://%s" % domain_name)
+            break
+        except Exception:
+            now = datetime.datetime.now().timestamp()
+            if now > before + config["general"]["connectivity_check_timeout"]:
+                raise errors.ConnectivityCheckError("The connectivity check timed out.")
+
+            continue
+
+
+def create_server(name, config):
     """Create an instance, attach a domain name to it, and wait until the instance's
     boot script has been run.
 
     Args:
-        config (dict): The parsed configuration.
         name (str): The name of the server.
+        config (dict): The parsed configuration.
     """
 
     # Guess what the final domain name for the host is going to be. This is used for
@@ -134,20 +168,12 @@ def create_server(config, name):
     logger.info("Created DNS record %s.%s" % (record.sub_domain, record.zone))
 
     logger.info("Waiting for post-creation script to finish...")
-    # Every second, check if we can reach the host's HTTPS server, and only exit it if we
-    # got a response. Because starting up the HTTP(S) server is the last operation
-    # performed by the post-creation script, reaching this condition means that the
-    # execution finished successfully.
-    while True:
-        time.sleep(1)
 
-        try:
-            requests.get("http://%s" % expected_domain)
-            break
-        except Exception:
-            continue
+    check_connectivity(expected_domain, config)
 
     logger.info("Done!")
+
+    return expected_domain
 
 
 def create(config):
@@ -195,7 +221,12 @@ def create(config):
             name = args.name
 
         # Create the server.
-        create_server(config, name)
+        try:
+            create_server(name, config)
+        except Exception as e:
+            logger.error(
+                "An error happened while creating the server, skipping: %s", e
+            )
 
 
 def parse_args():
