@@ -57,10 +57,7 @@ def delete_instance(entry_id, instance, nova_client, dry_run):
 
     # Only delete if the dry-run mode is off.
     if not dry_run:
-        try:
-            nova_client.servers.delete(instance)
-        except Exception as e:
-            logger.error("Failed to delete instance for %s:" % entry_id, e)
+        nova_client.servers.delete(instance)
 
 
 def delete_record(
@@ -82,10 +79,7 @@ def delete_record(
 
     # Only delete if the dry-run mode is off.
     if not dry_run:
-        try:
-            client.delete_sub_domain(record)
-        except Exception as e:
-            logger.error("Failed to delete domain name for %s:" % entry_id, e)
+        client.delete_sub_domain(record)
 
 
 def delete(config):
@@ -111,23 +105,33 @@ def delete(config):
     entries_to_delete = filter_entries_dict(entries_dict, args)
 
     # Loop over the entries to delete and delete them.
+    dns_refresh_needed = False
+
     for entry_id, entry in entries_to_delete.items():
         instance = entry.instance
         record = entry.record
 
         # If we know about an instance for this entry, delete it.
         if instance:
-            delete_instance(entry_id, instance, nova_client, args.dry_run)
+            try:
+                delete_instance(entry_id, instance, nova_client, args.dry_run)
+            except Exception as e:
+                logger.error("Failed to delete instance for %s:" % entry_id, e)
 
         # If we know about a DNS record for this entry, delete it.
         if record:
-            delete_record(entry_id, record, dns_client, args.dry_run)
+            try:
+                delete_record(entry_id, record, dns_client, args.dry_run)
+                dns_refresh_needed = True
+            except Exception as e:
+                logger.error("Failed to delete domain name for %s:" % entry_id, e)
 
-    logger.info("Applying the DNS changes...")
+    if dns_refresh_needed:
+        logger.info("Applying the DNS changes...")
 
-    if not args.dry_run:
-        # Refresh the DNS server's configuration to make it aware of the changes.
-        dns_client.commit(config["dns"]["zone"])
+        if not args.dry_run:
+            # Refresh the DNS server's configuration to make it aware of the changes.
+            dns_client.commit(config["dns"]["zone"])
 
     logger.info("Done!")
 
