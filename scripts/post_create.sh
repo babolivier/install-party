@@ -7,6 +7,12 @@ sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/" /etc/ssh/sshd_c
 # Restart the SSH daemon to apply.
 systemctl restart sshd
 
+# Create the user if it doesn't exist.
+id -u {user} > /dev/null 2>&1
+if [ "$?" != "0" ]; then
+	useradd {user} -m -s /bin/bash
+fi
+
 # Set the password for the user.
 echo "{user}:{password}" | chpasswd
 

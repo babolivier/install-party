@@ -109,7 +109,7 @@ general:
 # Configuration specific to the instances.
 instances:
   # User the attendee will use when logging into the host with SSH.
-  # Must already exist on the system.
+  # Will be created if it doesn't exist on the system.
   user: superevent
   # Password the attendee will use when logging into the host with SSH.
   password: superevent2019
