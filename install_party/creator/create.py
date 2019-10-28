@@ -20,7 +20,7 @@ def random_string(n):
     return ''.join(random.choices(string.ascii_lowercase, k=n))
 
 
-def create_instance(name, expected_domain, config):
+def create_instance(name, expected_domain, post_install_script, config):
     """Create the instance with a boot script using the OpenStack Nova API, then wait for
     the instance to become active (and raise an exception if an error occurred).
 
@@ -51,6 +51,7 @@ def create_instance(name, expected_domain, config):
         password=config["instances"]["password"],
         riot_version=config["general"]["riot_version"],
         expected_domain=expected_domain,
+        post_install_script=post_install_script,
     )
 
     # Ask the hypervisor to create a new instance.
@@ -140,7 +141,7 @@ def check_connectivity(domain_name, config):
             continue
 
 
-def create_server(name, config):
+def create_server(name, post_install_script, config):
     """Create an instance, attach a domain name to it, and wait until the instance's
     boot script has been run.
 
@@ -159,7 +160,7 @@ def create_server(name, config):
         "Provisioning server %s (expected domain name %s)" % (name, expected_domain)
     )
     # Create the instance with the OpenStack API.
-    ip_address = create_instance(name, expected_domain, config)
+    ip_address = create_instance(name, expected_domain, post_install_script, config)
     logger.info("Host is active, IPv4 address is %s", ip_address)
     # Create a DNS A record for the instance's IP address using the DNS provider's API.
     record = create_record(name, ip_address, config)
@@ -176,8 +177,20 @@ def create_server(name, config):
     return expected_domain
 
 
+def load_post_install_script(path):
+    if not path:
+        return ""
+
+    try:
+        return open(path).read()
+    except Exception as e:
+        logger.error("Could not open post-install script: %s", e)
+        return ""
+
+
 def create(config):
     args = parse_args()
+    post_install_script = load_post_install_script(args.post_install_script)
 
     if args.number:
         number_to_create = int(args.number)
@@ -191,7 +204,7 @@ def create(config):
             name = random_string(5)
             try:
                 # Create the server and stave its domain name.
-                domain_name = create_server(name, config)
+                domain_name = create_server(name, post_install_script, config)
                 server_domain_names.append(domain_name)
             except Exception as e:
                 logger.error(
@@ -222,10 +235,10 @@ def create(config):
 
         # Create the server.
         try:
-            create_server(name, config)
+            create_server(name, post_install_script, config)
         except Exception as e:
             logger.error(
-                "An error happened while creating the server, skipping: %s", e
+                "An error happened while creating the server, aborting: %s", e
             )
 
 
@@ -234,18 +247,23 @@ def parse_args():
         prog="install_party create",
         description="Create a new instance and attach a domain name to it.",
     )
+    parser.add_argument(
+        "-s", "--post-install-script",
+        help="Path to a Bash script to run once the server has been created and the"
+             " minimal installation has been performed.",
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-n", "--name",
         help="Name to give the instance, and to build its domain name from. Defaults to a"
              " random string of 5 lowercase letters. Can only contain the characters"
              " allowed in a domain name label. Cannot be used in combination with"
-             " -N/--number."
+             " -N/--number.",
     )
     group.add_argument(
         "-N", "--number",
         help="Number of servers to create. Each server's name will be a random string of"
-             " 5 lowercase letters. Cannot be used in combination with -n/--name."
+             " 5 lowercase letters. Cannot be used in combination with -n/--name.",
     )
 
     return parser.parse_args()

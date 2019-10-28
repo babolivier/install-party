@@ -56,3 +56,6 @@ curl "https://raw.githubusercontent.com/caddyserver/caddy/master/dist/init/linux
 
 # Start Caddy.
 systemctl start caddy
+
+# Run any additional script that may be provided.
+{post_install_script}
