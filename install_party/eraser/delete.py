@@ -4,10 +4,10 @@ from typing import Dict
 
 from install_party.dns import dns_provider
 from install_party.dns.dns_provider_client import DNSRecord, DNSProviderClient
-from install_party.instances import instance_provider
-from install_party.instances.instance_provider_client import (
+from install_party.instances import instances_provider
+from install_party.instances.instances_provider_client import (
     Instance,
-    InstanceProviderClient,
+    InstancesProviderClient,
 )
 from install_party.lister.list import get_list
 from install_party.util.entry import Entry
@@ -47,18 +47,18 @@ def filter_entries_dict(entries_dict, args) -> Dict[str, Entry]:
 def delete_instance(
         entry_id: str,
         instance: Instance,
-        client: InstanceProviderClient,
+        client: InstancesProviderClient,
         dry_run: bool
 ):
-    """Delete the provided OpenStack instance using the provided OpenStack Nova client,
-    or only print a message if the dry-run mode is on.
+    """Delete the provided instance using the provided API client for the instances
+    provider, or only print a message if the dry-run mode is on.
 
     If the deletion failed, just print a line about it.
 
     Args:
         entry_id (str): The ID of the entry we're deleting the instance of.
         instance (Instance): The instance to delete.
-        client (InstanceProviderClient): A client to the instances provider's API to
+        client (InstancesProviderClient): A client to the instances provider's API to
             use to perform the deletion.
         dry_run (bool): Whether we're running in dry-run mode.
     """
@@ -106,14 +106,15 @@ def delete(config):
     # Populate the dict of entries.
     entries_dict = get_list(config)
 
-    # Instantiate the OpenStack and OVH clients.
-    instances_client = instance_provider.get_instances_provider_client(config)
+    # Instantiate the clients for the instances and the DNS providers.
+    instances_client = instances_provider.get_instances_provider_client(config)
     dns_client = dns_provider.get_dns_provider_client(config)
 
     # Filter the entries_dict accordingly with the arguments.
     entries_to_delete = filter_entries_dict(entries_dict, args)
 
     # Loop over the entries to delete and delete them.
+    instances_refresh_needed = False
     dns_refresh_needed = False
 
     for entry_id, entry in entries_to_delete.items():
@@ -124,6 +125,7 @@ def delete(config):
         if instance:
             try:
                 delete_instance(entry_id, instance, instances_client, args.dry_run)
+                instances_refresh_needed = True
             except Exception as e:
                 logger.error("Failed to delete instance for %s:" % entry_id, e)
 
@@ -134,6 +136,13 @@ def delete(config):
                 dns_refresh_needed = True
             except Exception as e:
                 logger.error("Failed to delete domain name for %s:" % entry_id, e)
+
+    if instances_refresh_needed:
+        logger.info("Applying the instances deletion...")
+
+        if not args.dry_run:
+            # Commit the deletion to make it effective.
+            instances_client.commit()
 
     if dns_refresh_needed:
         logger.info("Applying the DNS changes...")

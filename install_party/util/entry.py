@@ -1,7 +1,5 @@
-from novaclient.v2.servers import Server
-
 from install_party.dns.dns_provider_client import DNSRecord
-from install_party.instances.instance_provider_client import Instance
+from install_party.instances.instances_provider_client import Instance
 
 
 class Entry:

@@ -2,23 +2,23 @@ import ipaddress
 import logging
 from typing import List
 
-from novaclient import client as novaclient
+from novaclient import client as nova_client
 
 # Only imported for type hints.
 from novaclient.v2.client import Client as V2Client
 
-from install_party.instances.instance_provider_client import (
+from install_party.instances.instances_provider_client import (
     Instance,
-    InstanceProviderClient,
+    InstancesProviderClient,
 )
 from install_party.util.errors import InstanceCreationError
 
 logger = logging.getLogger(__name__)
 
 
-class OpenstackInstancesProviderClient(InstanceProviderClient):
+class OpenStackInstancesProviderClient(InstancesProviderClient):
     def __init__(self, args):
-        self.client: V2Client = novaclient.Client(
+        self.client: V2Client = nova_client.Client(
             version=args["api_version"],
             auth_url=args["auth_url"],
             username=args["username"],
@@ -73,21 +73,27 @@ class OpenstackInstancesProviderClient(InstanceProviderClient):
         return instances
 
     def delete_instance(self, instance: Instance):
-        self.client.servers.delete(instance.id)
+        self.client.servers.delete(instance.instance_id)
 
     def commit(self):
         pass
 
 
-provider_client_class = OpenstackInstancesProviderClient
+provider_client_class = OpenStackInstancesProviderClient
 
 
-def get_ipv4(instance):
-    # Get the instance's IPv4 address from its metadata.
-    # We need to loop through all of the interfaces of the Ext-Net
-    # network (which is the public-facing network) because we can't
-    # always know how the interfaces are ordered.
-    interfaces = instance.addresses.get("Ext-Net")
+def get_ipv4(server):
+    """Get the server's public IPv4 address from its metadata.
+
+    Loops through all of the interfaces of the Ext-Net network (which is the public-facing
+    network) because we can't always know how the interfaces are ordered.
+
+    Args:
+         server (Server): The server to retrieve the IPv4 of, as an instance of the Server
+            class from the nova SDK.
+    """
+
+    interfaces = server.addresses.get("Ext-Net")
     if interfaces is None:
         return None
 

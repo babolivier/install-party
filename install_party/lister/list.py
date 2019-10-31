@@ -5,7 +5,7 @@ from typing import Dict
 from tabulate import tabulate
 
 from install_party.dns import dns_provider
-from install_party.instances import instance_provider
+from install_party.instances import instances_provider
 from install_party.util.entry import Entry
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ def gather_instances(entries_dict: Dict[str, Entry], config):
     """
     logger.debug("Gathering instances...")
 
-    client = instance_provider.get_instances_provider_client(config)
+    client = instances_provider.get_instances_provider_client(config)
     instances = client.get_instances(config["general"]["namespace"])
 
     # Edit the entries dictionary to add the instances' information.
@@ -125,9 +125,8 @@ def get_list(config) -> Dict[str, Entry]:
             "<id>": {"instance": ..., "record": ...},
         }
 
-        where "instance" is the instance associated with this ID (as returned by
-        nova_client.servers.list) and "record" is the DNS record associated with this ID
-        (a DNSRecord object).
+        where "instance" is the instance associated with this ID (an Instance object) and
+        "record" is the DNS record associated with this ID (a DNSRecord object).
     """
     # Initialise the empty dict which will be populated later.
     entries_dict = {}

@@ -1,10 +1,10 @@
 import importlib
 
-from install_party.instances.instance_provider_client import InstanceProviderClient
+from install_party.instances.instances_provider_client import InstancesProviderClient
 from install_party.util.errors import UnknownProviderError
 
 
-def get_instances_provider_client(config) -> InstanceProviderClient:
+def get_instances_provider_client(config) -> InstancesProviderClient:
     """Instantiate an API client for the configured instances provider.
 
     Args:

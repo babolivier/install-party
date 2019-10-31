@@ -9,7 +9,7 @@ import time
 import requests
 
 from install_party.dns import dns_provider
-from install_party.instances import instance_provider
+from install_party.instances import instances_provider
 from install_party.util import errors
 
 logger = logging.getLogger(__name__)
@@ -21,8 +21,7 @@ def random_string(n):
 
 
 def create_instance(name, expected_domain, post_install_script, config):
-    """Create the instance with a boot script using the OpenStack Nova API, then wait for
-    the instance to become active (and raise an exception if an error occurred).
+    """Create the instance with a boot script using the instances provider's API.
 
     Args:
         name (str): The suffix for the name of the instance to create. The final name will
@@ -30,6 +29,8 @@ def create_instance(name, expected_domain, post_install_script, config):
             configuration.
         expected_domain (str): The domain name that is expected to be attached to the
             instance later in the creation process.
+        post_install_script (str): A script to run after the post-creation script has
+            finished. If no script has been provided, it's an empty string.
         config (dict): The parsed configuration.
 
     Returns:
@@ -57,11 +58,14 @@ def create_instance(name, expected_domain, post_install_script, config):
         post_install_script=post_install_script,
     )
 
-    # Ask the hypervisor to create a new instance.
-    client = instance_provider.get_instances_provider_client(config)
+    # Create a new instance and check that it builds correctly.
+    client = instances_provider.get_instances_provider_client(config)
 
     instance_name = "%s-%s" % (config["general"]["namespace"], name)
     instance = client.create_instance(instance_name, post_creation_script)
+
+    # Commit the operation.
+    client.commit()
 
     return instance.ip_address
 
@@ -133,6 +137,8 @@ def create_server(name, post_install_script, config):
 
     Args:
         name (str): The name of the server.
+        post_install_script (str): A script to run after the post-creation script has
+            finished. If no script has been provided, it's an empty string.
         config (dict): The parsed configuration.
     """
 
@@ -145,7 +151,7 @@ def create_server(name, post_install_script, config):
     logger.info(
         "Provisioning server %s (expected domain name %s)" % (name, expected_domain)
     )
-    # Create the instance with the OpenStack API.
+    # Create the instance with the instances provider's API.
     ip_address = create_instance(name, expected_domain, post_install_script, config)
     logger.info("Host is active, IPv4 address is %s", ip_address)
     # Create a DNS A record for the instance's IP address using the DNS provider's API.
