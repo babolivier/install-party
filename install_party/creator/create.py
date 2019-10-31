@@ -184,9 +184,9 @@ def create(config):
     args = parse_args()
     post_install_script = load_post_install_script(args.post_install_script)
 
-    if args.number:
-        number_to_create = int(args.number)
+    number_to_create = int(args.number) if args.number is not None else 1
 
+    if number_to_create > 1:
         server_domain_names = []
         failures = 0
 
@@ -215,7 +215,7 @@ def create(config):
 
             # Print the domain names of all of the servers created.
             for domain_name in server_domain_names:
-                print("\t- %s", domain_name)
+                print("\t-", domain_name)
         else:
             print("\nAll servers have failed to create.")
     else:
