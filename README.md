@@ -22,27 +22,33 @@ arguments it supports.
 
 ## Creation mode
 
-The creation mode (`create`) uses the OpenStack and OVH APIs to create a
-new host, attach a domain to it, and run a script that installs
-[Riot](https://github.com/vector-im/riot-web) and
+The creation mode (`create`) uses creates a new server by creating a
+new instance (virtual/physical machine), attaching a domain to it, and
+runing a script that installs [Riot](https://about.riot.im/) and
 [Caddy](https://caddyserver.com/) on it, so that an attendee can log in
 (with SSH) with the configured username and password, install a new
 homeserver, and directly use it with the Riot instance.
 
-The OpenStack instance name will be `{namespace}-{name}` and the domain name will be `{name}.{namespace}.{zone}`, where:
+The instance name will be `{namespace}-{name}` and the domain name will
+be `{name}.{namespace}.{zone}`, where:
 
 * `{namespace}` is a configured namespace (e.g. the event's name as a slug)
-* `{zone}` is a configured DNS zone (must be managed by OVH)
-* `{name}` is the host's name (either provided, e.g. `install_party create --name foo`, or a randomly generated 5-letter string)
+* `{zone}` is a configured DNS zone (must be managed by the configured DNS provider)
+* `{name}` is the host's name (either provided, e.g. `install_party create -n/--name foo`, or a randomly generated 5-letter string)
 
 Note: currently, if attendees wish/need to use a homeserver's built-in
 ACME support, they must set the post the ACME support listener is
 listening to to `8888`.
 
 Creating multiple servers in the same run is possible by using the
-command-line argument `-N x` where `x` is the number of servers to
-create. If one or more creation(s) failed, Install Party will not
+command-line argument `-N/--number x` where `x` is the number of servers
+to create. If one or more creation(s) failed, Install Party will not
 automatically attempt to recreate them.
+
+This mode also accepts the command-line argument
+`-s/--post-install-script` that points to a script to run after the
+server's creation and its initial setup (i.e. after the installation of
+Riot and Caddy).
 
 ## List mode
 
@@ -53,7 +59,10 @@ file, along with their status.
 If an instance has no domain attached, or if a domain isn't attached to
 an existing instance, they will be listed in separate tables (named
 `ORPHANED INSTANCES` and `ORPHANED DOMAINS`). These additional tables
-can be hidden by using the command-line flag `--hide-orphans`.
+can be hidden by using the command-line flag `-H/--hide-orphans`.
+
+This mode also accepts the command-line argument `-v/--verbose` to print
+out additional logging.
 
 ## Deletion mode
 
@@ -82,6 +91,9 @@ On the other hand, deleting only the servers named `matrixtest1` and
 ```
 install_party delete --server matrixtest1 --server matrixtest2
 ```
+
+This mode also accepts the command-line argument `-v/--verbose` to print
+out additional logging.
 
 ## Configuration
 
