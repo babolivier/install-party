@@ -201,10 +201,10 @@ flavor_id: my_super_flavor
 See https://docs.openstack.org/ for a full documentation of OpenStack's
 APIs.
 
-### Adding support for a DNS provider
+### Adding support for an instances provider
 
-To add support for a DNS provider, simply add a Python code file in
-`install_party/instances/providers` which inherits from the
+To add support for an instances provider, simply add a Python code file
+in `install_party/instances/providers` which inherits from the
 `install_party.instances.instances_provider.InstancesProviderClient`
 class and implements its methods. It must then expose this class in a
 variable named `provider_client_class` (i.e. add
