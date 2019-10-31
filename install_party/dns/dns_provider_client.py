@@ -1,4 +1,5 @@
 import abc
+import ipaddress
 from typing import List
 
 
@@ -13,6 +14,10 @@ class DNSRecord:
             target (str): The record's target. Must be a valid IPv4.
             zone (str): The DNS zone the record is in.
         """
+        # This will raise an AddressValueError exception if the value isn't an IPv4
+        # address.
+        ipaddress.IPv4Address(target)
+
         self.record_id = record_id
         self.sub_domain = sub_domain
         self.target = target

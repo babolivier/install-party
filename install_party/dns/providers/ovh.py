@@ -1,3 +1,5 @@
+import ipaddress
+
 import ovh
 
 from install_party.dns.dns_provider_client import DNSProviderClient, DNSRecord
@@ -13,6 +15,10 @@ class OvhDNSProviderClient(DNSProviderClient):
         )
 
     def create_sub_domain(self, sub_domain, target, zone):
+        # This will raise an AddressValueError exception if the value isn't an IPv4
+        # address.
+        ipaddress.IPv4Address(target)
+
         record = self.client.post(
             "/domain/zone/%s/record" % zone,
             fieldType="A",

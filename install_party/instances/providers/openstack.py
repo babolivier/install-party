@@ -101,15 +101,13 @@ def get_ipv4(server):
     for interface in interfaces:
         address = interface["addr"]
         try:
-            # This will raise an AddressValueError exception if the
-            # value isn't an IPv4 address.
+            # This will raise an AddressValueError exception if the value isn't an IPv4
+            # address.
             ipaddress.IPv4Address(address)
-            # If no exception have been raised, then the address is an
-            # IPv4 address.
+            # If no exception have been raised, then the address is an IPv4 address.
             ip_address = address
         except ipaddress.AddressValueError:
-            # This address isn't an IPv4 address; continue to the
-            # next interface.
+            # This address isn't an IPv4 address; continue to the next interface.
             continue
 
     return ip_address
