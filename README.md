@@ -113,9 +113,15 @@ instances:
   user: superevent
   # Password the attendee will use when logging into the host with SSH.
   password: superevent2019
-
-# Configuration to connect to the OVH API.
-# See https://api.ovh.com/ for a full documentation.
+  # Instances provider to use. Must be a supported provider. See which
+  # providers are supported in install_party/instances/providers (there
+  # is a file for each supported provider).
+  provider: myinstancesprovider
+  # Arguments to provide to the instances provider's API client. See the
+  # documentation below.
+  args:
+    arg1: value1
+    arg2: value2
 
 # Configuration for connecting to the DNS provider and creating the DNS
 # record.
@@ -124,33 +130,79 @@ dns:
   zone: example.com
   # DNS provider to use. Must be a supported provider. See which
   # providers are supported in install_party/dns/providers (there is a
-  # file for each supported provider.
-  provider: ovh
-  # Arguments to provide to the DNS provider's API client.
+  # file for each supported provider).
+  provider: mydnsprovider
+  # Arguments to provide to the DNS provider's API client. See the
+  # documentation below.
   args:
-    endpoint: ovh-eu
-    application_key: SOME_KEY
-    application_secret: SOME_SECRET
-    consumer_key: SOME_KEY
-
-# Configuration to connect to the OpenStack API or that is using notions
-# specific to OpenStack.
-# See https://docs.openstack.org/ for a full documentation.
-openstack:
-  # Version of the OpenStack compute API. Currently, only versions 2 and
-  # above are supported.
-  api_version: 2
-  auth_url: https://auth.example.com/v2.0/
-  tenant_name: somesecret
-  tenant_id: somesecret
-  username: somesecret
-  password: somesecret
-  region_name: GRA3
-  # ID of the image to use to create the instances.
-  image_id: my_super_image
-  # ID of the flavor to use to create the instances.
-  flavor_id: my_super_flavor
+    arg1: value1
+    arg2: value2
 ```
+
+## Instances provider
+
+Install Party will use the configured instances provider (if supported)
+to provision instances (i.e. virtual/physical machines) for the servers
+it creates, and also to list and delete instances.
+
+### Supported providers
+
+Here are the instances providers supported by Install Party, along with
+their name (i.e. what to write under `provider` in the configuration
+file) and their API client's configuration arguments (i.e. what to write
+in `args` in the `instances` section of the configuration file).
+
+#### OpenStack
+
+**Provider name:** `openstack`
+
+**Configuration arguments:**
+
+You first need to create an OpenStack account with your OpenStack
+provider (or on your OpenStack cluster if you're self-hosting it).
+
+Then provide the authentication credentials along with the configuration
+of the instances to create:
+
+```yaml
+# Version of the OpenStack compute API. Currently, only versions 2 and
+# above are supported.
+api_version: 2
+# The URL of the authentication (keystone) endpoint.
+auth_url: https://auth.example.com/v2.0/
+# The project's tenant name.
+tenant_name: somesecret
+# The project's tenant identifier.
+tenant_id: somesecret
+# The project's region.
+region_name: SOMEREGION
+# The account's username.
+username: somesecret
+# The account's password.
+password: somesecret
+# ID of the image to use to create the instances.
+image_id: my_super_image
+# ID of the flavor to use to create the instances.
+flavor_id: my_super_flavor
+```
+
+See https://docs.openstack.org/ for a full documentation of OpenStack's
+APIs.
+
+### Adding support for a DNS provider
+
+To add support for a DNS provider, simply add a Python code file in
+`install_party/instances/providers` which inherits from the
+`install_party.instances.instances_provider.InstancesProviderClient`
+class and implements its methods. It must then expose this class in a
+variable named `provider_client_class` (i.e. add
+`provider_class = MyProviderClient` at the end of the file).
+
+You can then use this provider by providing the name of the Python file
+(without the `.py` extension) as the instances provider in the
+configuration file. The provided class will be instantiated with the
+configured arguments, as a `dict` containing the `args` section of the
+`instances` configuration.
 
 ## DNS providers
 
@@ -163,7 +215,7 @@ delete DNS records.
 Here are the DNS providers supported by Install Party, along with their
 name (i.e. what to write under `provider` in the configuration file) and
 their API client's configuration arguments (i.e. what to write in `args`
-in the configuration file).
+in the `dns` section of the configuration file).
 
 #### OVH
 
@@ -198,10 +250,6 @@ the end of the file).
 
 You can then use this provider by providing the name of the Python file
 (without the `.py` extension) as the DNS provider in the configuration
-file.
-
-## Limitations
-
-As pointed out above, Install Party is designed to only work with
-infrastructure projects managed by an OpenStack provider. There is
-currently no plan to expand this list of providers.
+file. The provided class will be instantiated with the configured
+arguments, as a `dict` containing the `args` section of the `dns`
+configuration.
