@@ -170,6 +170,15 @@ def create_server(name, post_install_script, config):
 
 
 def load_post_install_script(path):
+    """Try to load the post-install script located at the provided path.
+
+    Args:
+        path (str): Path to the script.
+
+    Returns:
+         Either the content of the file, or an empty string if the path is empty or
+         couldn't be opened.
+    """
     if not path:
         return ""
 
@@ -181,6 +190,15 @@ def load_post_install_script(path):
 
 
 def create(config):
+    """Create a server by creating an instance and attaching a domain name to it.
+
+    If multiple servers need to be created, then loop over the number of servers to
+    create. If an error happened during one of the creations, log it and carry on.
+
+    Args:
+        config (dict): The parsed configuration.
+    """
+
     args = parse_args()
     post_install_script = load_post_install_script(args.post_install_script)
 
@@ -204,6 +222,7 @@ def create(config):
                 )
                 failures += 1
 
+        # Print specific messages depending on whether creations failed.
         if failures < number_to_create:
             if failures:
                 print(
