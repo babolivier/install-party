@@ -2,10 +2,9 @@ import argparse
 import datetime
 import logging
 import random
+import pathlib
 import string
-import sys
 import time
-import os
 
 import requests
 
@@ -45,7 +44,12 @@ def create_instance(name, expected_domain, post_install_script, config):
 
     # Generate the actual script to run post-creation from the template and the
     # configuration.
-    post_creation_script_path = os.path.join(sys.prefix, "scripts/post_create.sh")
+    current_path = pathlib.Path(__file__)
+    # From the location of this file, the script is located in "../../scripts". We add an
+    # additional ".parent" here to go from the file to the directory it lives in.
+    post_creation_script_path = current_path.parent.parent.parent.joinpath(
+        "scripts/post_create.sh"
+    )
     post_creation_script = open(post_creation_script_path).read().format(
         user=config["instances"]["user"],
         password=config["instances"]["password"],

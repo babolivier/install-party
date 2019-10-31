@@ -1,1 +1,1 @@
-recursive-include scripts *.sh
+include install_party/scripts/*.sh
