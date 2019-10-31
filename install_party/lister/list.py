@@ -5,7 +5,7 @@ from typing import Dict
 from tabulate import tabulate
 
 from install_party.dns import dns_provider
-from install_party.util import openstack
+from install_party.instances import instance_provider
 from install_party.util.entry import Entry
 
 logger = logging.getLogger(__name__)
@@ -19,14 +19,10 @@ def gather_instances(entries_dict: Dict[str, Entry], config):
         entries_dict (dict): The dict to add the instances' info to.
         config (dict): The parsed configuration.
     """
-    nova_client = openstack.get_nova_client(config)
-
     logger.debug("Gathering instances...")
 
-    # Retrieve all instances which name starts with the namespace and is followed by "-".
-    instances = nova_client.servers.list(search_opts={
-        "name": "%s-*" % config["general"]["namespace"]
-    })
+    client = instance_provider.get_instances_provider_client(config)
+    instances = client.get_instances(config["general"]["namespace"])
 
     # Edit the entries dictionary to add the instances' information.
     for instance in instances:
@@ -102,7 +98,7 @@ def sort_entries(entries_dict: Dict[str, Entry]):
                 entries_dict,
                 instance.name,
                 instance.status,
-                openstack.get_ipv4(instance)
+                instance.ip_address
             ])
         else:
             complete_entries.append([
@@ -110,7 +106,7 @@ def sort_entries(entries_dict: Dict[str, Entry]):
                 instance.name,
                 full_domain,
                 instance.status,
-                openstack.get_ipv4(instance)
+                instance.ip_address,
             ])
 
     return complete_entries, orphaned_domains, orphaned_instances
@@ -184,7 +180,7 @@ def get_and_print_list(config):
             print("\nORPHANED DOMAINS")
             print(tabulate(
                 orphaned_domains,
-                headers=["Name", "Domain", "Status", "IPv4"],
+                headers=["Name", "Domain", "Target"],
                 tablefmt="psql"
             ))
 

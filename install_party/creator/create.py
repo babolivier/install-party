@@ -9,7 +9,8 @@ import time
 import requests
 
 from install_party.dns import dns_provider
-from install_party.util import errors, openstack
+from install_party.instances import instance_provider
+from install_party.util import errors
 
 logger = logging.getLogger(__name__)
 
@@ -38,16 +39,14 @@ def create_instance(name, expected_domain, post_install_script, config):
         InstanceCreationError: When waiting for the instance's status to become ACTIVE, it
             instead became ERROR.
     """
-    nova_client = openstack.get_nova_client(config)
-
     logger.info("Creating instance...")
 
     # Generate the actual script to run post-creation from the template and the
     # configuration.
     current_path = pathlib.Path(__file__)
-    # From the location of this file, the script is located in "../../scripts". We add an
+    # From the location of this file, the script is located in "../scripts". We add an
     # additional ".parent" here to go from the file to the directory it lives in.
-    post_creation_script_path = current_path.parent.parent.parent.joinpath(
+    post_creation_script_path = current_path.parent.parent.joinpath(
         "scripts/post_create.sh"
     )
     post_creation_script = open(post_creation_script_path).read().format(
@@ -59,29 +58,12 @@ def create_instance(name, expected_domain, post_install_script, config):
     )
 
     # Ask the hypervisor to create a new instance.
-    openstack_config = config["openstack"]
-    instance = nova_client.servers.create(
-        name="%s-%s" % (config["general"]["namespace"], name),
-        image=openstack_config["image_id"],
-        flavor=openstack_config["flavor_id"],
-        userdata=post_creation_script,
-    )
+    client = instance_provider.get_instances_provider_client(config)
 
-    logger.info("Waiting for instance to become active...")
+    instance_name = "%s-%s" % (config["general"]["namespace"], name)
+    instance = client.create_instance(instance_name, post_creation_script)
 
-    # Wait for the instance to become active.
-    status = ""
-    while status != "ACTIVE":
-        instance = nova_client.servers.list(search_opts={
-            "name": name,
-        })[0]
-
-        status = instance.status
-
-        if status == "ERROR":
-            raise errors.InstanceCreationError("The instance status changed to ERROR.")
-
-    return openstack.get_ipv4(instance)
+    return instance.ip_address
 
 
 def create_record(name, ip_address, config):
