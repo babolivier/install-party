@@ -11,12 +11,17 @@ from install_party.util import errors
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        sys.stderr.write("Usage: install_party.py [mode] [options]\n")
+        sys.stderr.write("Usage: install_party.py [mode] [args]\n")
         sys.exit(1)
 
     # Configure logging.
     rootLogger = logging.getLogger("install_party")
+    formatter = logging.Formatter(
+        fmt="{asctime} | {name} - {levelname} - {message}",
+        style="{",
+    )
     handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
     rootLogger.addHandler(handler)
     rootLogger.setLevel(logging.INFO)
 

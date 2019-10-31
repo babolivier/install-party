@@ -206,18 +206,18 @@ def create(config):
 
         if failures < number_to_create:
             if failures:
-                logger.info(
-                    "\n%d servers over %d have been created:",
-                    number_to_create - failures, number_to_create
+                print(
+                    "\n%d servers over %d have been created:"
+                    % (number_to_create - failures, number_to_create)
                 )
             else:
-                logger.info("\nAll servers have been created:")
+                print("\nAll servers have been created:")
 
             # Print the domain names of all of the servers created.
             for domain_name in server_domain_names:
-                logger.info("\t- %s", domain_name)
+                print("\t- %s", domain_name)
         else:
-            logger.info("\nAll servers have failed to create.")
+            print("\nAll servers have failed to create.")
     else:
         # Generate a random name (5 lowercase letters) if none was provided.
         if args.name is None:
