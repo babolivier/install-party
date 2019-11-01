@@ -1,5 +1,7 @@
 # Install Party
 
+![PyPI](https://img.shields.io/pypi/v/install-party?style=flat-square) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/install-party?style=flat-square) [![#install-party:abolivier.bzh on Matrix](https://img.shields.io/matrix/install-party:abolivier.bzh.svg?server_fqdn=matrix.org&logo=matrix&style=flat-square)](https://matrix.to/#/#install-party:abolivier.bzh)
+
 This is a project that creates and manages ephemeral servers for install
 parties/workshops of [Matrix](https://matrix.org) homeservers.
 
