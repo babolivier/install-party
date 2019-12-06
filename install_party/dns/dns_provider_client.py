@@ -5,8 +5,8 @@ from typing import List
 
 class DNSRecord:
     def __init__(self, record_id: str, sub_domain: str, target: str, zone: str):
-        """The representation of a DNS record created or retrieved by the API client for
-        the configured DNS provider.
+        """The representation of a DNS record created or retrieved by the API client
+        for the configured DNS provider.
 
         Args:
             record_id (str): The internal identifier of the record.

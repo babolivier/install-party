@@ -23,8 +23,8 @@ def filter_entries_dict(entries_dict, args) -> Dict[str, Entry]:
         args (Namespace): The parsed command-line arguments.
 
     Returns:
-        A dict following the same schema and data as the provided one but filtered minus
-        the entries that the command-line arguments mandate to remove from it.
+        A dict following the same schema and data as the provided one but filtered
+        minus the entries that the command-line arguments mandate to remove from it.
     """
 
     if args.server:
@@ -80,8 +80,8 @@ def delete_record(
     Args:
         entry_id (str): The ID of the entry we're deleting the DNS record of.
         record (DNSRecord): The DNS record to delete.
-        client (DNSProviderClient): A client to the DNS provider's API to use to perform
-            the deletion.
+        client (DNSProviderClient): A client to the DNS provider's API to use to
+            perform the deletion.
         dry_run (bool): Whether we're running in dry-run mode.
     """
     logger.info("Deleting domain name for name %s..." % entry_id)
@@ -110,8 +110,12 @@ def delete(config):
     instances_client = instances_provider.get_instances_provider_client(config)
     dns_client = dns_provider.get_dns_provider_client(config)
 
-    # Filter the entries_dict accordingly with the arguments.
-    entries_to_delete = filter_entries_dict(entries_dict, args)
+    try:
+        # Filter the entries_dict accordingly with the arguments.
+        entries_to_delete = filter_entries_dict(entries_dict, args)
+    except KeyError as e:
+        logger.error("Unknown server: %s", e.args[0])
+        return
 
     # Loop over the entries to delete and delete them.
     instances_refresh_needed = False

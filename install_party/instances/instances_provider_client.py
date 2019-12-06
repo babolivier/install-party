@@ -11,7 +11,8 @@ class Instance:
             instance_id (str): The internal identifier of the instance.
             name (str): The name of the instance.
             ip_address (str): The IPv4 of the instance.
-            status (str): The status of the instance (e.g. building, active, error, etc.).
+            status (str): The status of the instance (e.g. building, active, error,
+                etc.).
         """
         self.instance_id = instance_id
         self.name = name

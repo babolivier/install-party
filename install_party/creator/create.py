@@ -24,8 +24,8 @@ def create_instance(name, expected_domain, post_install_script, config):
     """Create the instance with a boot script using the instances provider's API.
 
     Args:
-        name (str): The suffix for the name of the instance to create. The final name will
-            be "namespace-name" where "namespace" is the namespace defined in the
+        name (str): The suffix for the name of the instance to create. The final name
+            will be "namespace-name" where "namespace" is the namespace defined in the
             configuration.
         expected_domain (str): The domain name that is expected to be attached to the
             instance later in the creation process.
@@ -37,8 +37,8 @@ def create_instance(name, expected_domain, post_install_script, config):
         str: the IPv4 address of the instance.
 
     Raises:
-        InstanceCreationError: When waiting for the instance's status to become ACTIVE, it
-            instead became ERROR.
+        InstanceCreationError: When waiting for the instance's status to become ACTIVE,
+            it instead became ERROR.
     """
     logger.info("Creating instance...")
 
@@ -74,8 +74,8 @@ def create_record(name, ip_address, config):
     """Create a DNS A record to attach to an instance using the DNS provider's API.
 
     Args:
-        name (str): The prefix for the DNS record's subdomain. The final subdomain will be
-            "name.namespace" where "namespace" is the namespace defined in the
+        name (str): The prefix for the DNS record's subdomain. The final subdomain will
+            be "name.namespace" where "namespace" is the namespace defined in the
             configuration.
         ip_address (str): The IPv4 address to attach the DNS A record to.
         config (dict): The parsed configuration.
@@ -99,8 +99,8 @@ def create_record(name, ip_address, config):
 
 
 def check_connectivity(domain_name, config):
-    """Every second, check if we can reach the host's HTTPS server, and only exit it if we
-    got a response.
+    """Every second, check if we can reach the host's HTTPS server, and only exit it if
+    we got a response.
 
     Because starting up the HTTP(S) server is the last operation performed by the
     post-creation script, reaching this condition means that the execution finished
@@ -111,8 +111,8 @@ def check_connectivity(domain_name, config):
         config (dict): The parsed configuration.
 
     Raises:
-        ConnectivityCheckError: The connectivity check had to be aborted (e.g. if it timed
-            out)
+        ConnectivityCheckError: The connectivity check had to be aborted (e.g. if it
+            timed out)
     """
 
     before = datetime.datetime.now().timestamp()
@@ -266,8 +266,8 @@ def parse_args():
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-n", "--name",
-        help="Name to give the instance, and to build its domain name from. Defaults to a"
-             " random string of 5 lowercase letters. Can only contain the characters"
+        help="Name to give the instance, and to build its domain name from. Defaults to "
+             " a random string of 5 lowercase letters. Can only contain the characters"
              " allowed in a domain name label. Cannot be used in combination with"
              " -N/--number.",
     )

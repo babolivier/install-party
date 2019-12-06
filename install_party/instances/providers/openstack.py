@@ -52,13 +52,14 @@ class OpenStackInstancesProviderClient(InstancesProviderClient):
 
             if status == "ERROR":
                 raise InstanceCreationError(
-                    "The instance status changed to ERROR.")
+                    "The instance status changed to ERROR."
+                )
 
         return Instance(server.id, name, get_ipv4(server), status)
 
     def get_instances(self, namespace: str) -> List[Instance]:
-        # Retrieve all instances which name starts with the namespace and is followed by
-        # "-".
+        # Retrieve all instances which name starts with the namespace and is followed
+        # by "-".
         servers = self.client.servers.list(search_opts={
             "name": "%s-*" % namespace
         })
@@ -85,12 +86,12 @@ provider_client_class = OpenStackInstancesProviderClient
 def get_ipv4(server):
     """Get the server's public IPv4 address from its metadata.
 
-    Loops through all of the interfaces of the Ext-Net network (which is the public-facing
-    network) because we can't always know how the interfaces are ordered.
+    Loops through all of the interfaces of the Ext-Net network (which is the
+    public-facing network) because we can't always know how the interfaces are ordered.
 
     Args:
-         server (Server): The server to retrieve the IPv4 of, as an instance of the Server
-            class from the nova SDK.
+         server (Server): The server to retrieve the IPv4 of, as an instance of the
+            Server class from the nova SDK.
     """
 
     interfaces = server.addresses.get("Ext-Net")
