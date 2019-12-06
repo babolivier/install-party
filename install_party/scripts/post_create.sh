@@ -15,6 +15,7 @@ fi
 
 # Set the password for the user.
 echo "{user}:{password}" | chpasswd
+echo "{user} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install Riot.
 mkdir -p /var/www
