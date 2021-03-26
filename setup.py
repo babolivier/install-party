@@ -32,7 +32,7 @@ setuptools.setup(
     install_requires=[
         "ovh==0.5.0",
         "python-novaclient==15.1.0",
-        "PyYAML==5.1.2",
+        "PyYAML==5.4",
         "requests==2.22.0",
         "tabulate==0.8.5",
     ],
