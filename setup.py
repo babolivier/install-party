@@ -33,7 +33,7 @@ setuptools.setup(
         "ovh==0.5.0",
         "python-novaclient==15.1.0",
         "PyYAML==5.4",
-        "requests==2.22.0",
+        "requests==2.31.0",
         "tabulate==0.8.5",
     ],
     long_description=long_description,
